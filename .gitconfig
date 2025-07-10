@@ -1,0 +1,39 @@
+[core]
+    editor = vim
+    excludesfile = ~/.gitignore_global
+    autocrlf = input
+    safecrlf = true
+    whitespace = cr-at-eol
+[user]
+    name = Nafi Robayat 
+    email = nafi@live.com
+[init]
+    defaultBranch = main
+[color]
+    ui = auto
+    branch = auto
+    diff = auto
+    status = auto
+    interactive = auto
+[log]
+    date = iso
+    decorate = short
+    graph = true
+[commit]
+    verbose = true
+[pull]
+    rebase = true
+[diff]
+  tool = nvimdiff
+[merge]
+  tool = nvimdiff
+[push]
+    default = current
+[branch]
+    autosetuprebase = always
+[difftool "nvimdiff"]
+    cmd = nvim -d "$LOCAL" "$REMOTE"
+[status]
+    showUntrackedFiles = all
+[credential]
+    helper = cache
