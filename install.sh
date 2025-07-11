@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update and upgrade the system
-sudo add-apt-repository ppa:deadsnakes/ppa
+sudo add apt-repository ppa:deadsnakes/ppa
 sudo apt update && sudo apt upgrade -y
 
 # Install packages
@@ -13,6 +13,7 @@ PACKAGES=(
     tmux
     ripgrep
     fzf
+    vim
 )
 
 APT_GET_PACKAGES=(
@@ -84,7 +85,7 @@ if ! command -v nvim &> /dev/null; then
     curl -LO https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-x86_64.tar.gz
     sudo rm -rf /opt/nvim
     sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
-    ./nvim-linux-x86_64/bin/nvim
+    /opt/nvim/bin/nvim --version
 else
     echo "Neovim is already installed."
 fi
@@ -100,9 +101,9 @@ else
 fi
 
 # chmod +x for all scripts in .local/bin
-if [ -d "$HOME/.local/bin" ]; then
+if [ -d "$PWD/.local/bin" ]; then
     echo "Making scripts in .local/bin executable..."
-    find "$HOME/.local/bin" -type f -name "*.sh" -exec chmod +x {} \;
+    find "$PWD/.local/bin" -type f -name "*.sh" -exec chmod +x {} \;
     echo "Scripts in .local/bin are now executable."
 else
     echo ".local/bin directory does not exist, skipping chmod."
