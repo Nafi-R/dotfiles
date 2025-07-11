@@ -13,6 +13,9 @@ PACKAGES=(
     tmux
     ripgrep
     fzf
+)
+
+APT_GET_PACKAGES=(
     python3.10
     python3.10-venv
     python3.10-dev
@@ -21,6 +24,9 @@ PACKAGES=(
 echo "Installing packages..."
 for package in "${PACKAGES[@]}"; do
     sudo apt install -y "$package"
+done
+for package in "${APT_GET_PACKAGES[@]}"; do
+    sudo apt-get install -y "$package"
 done
 
 echo "Packages installed successfully!"
