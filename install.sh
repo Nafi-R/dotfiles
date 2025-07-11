@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Update and upgrade the system
-sudo add apt-repository ppa:deadsnakes/ppa
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt update && sudo apt upgrade -y
 
 # Install packages
@@ -14,9 +15,6 @@ PACKAGES=(
     ripgrep
     fzf
     vim
-)
-
-APT_GET_PACKAGES=(
     python3.10
     python3.10-venv
     python3.10-dev
@@ -25,9 +23,6 @@ APT_GET_PACKAGES=(
 echo "Installing packages..."
 for package in "${PACKAGES[@]}"; do
     sudo apt install -y "$package"
-done
-for package in "${APT_GET_PACKAGES[@]}"; do
-    sudo apt-get install -y "$package"
 done
 
 echo "Packages installed successfully!"
