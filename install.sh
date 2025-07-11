@@ -33,31 +33,18 @@ done
 echo "Packages installed successfully!"
 
 # Install tmux plugin manager (TPM)
-if [ ! -d "$HOME/.config/tmux/plugins/tpm" ]; then
-    echo "Installing tmux plugin manager (TPM)..."
-    mkdir -p "$HOME/.config/tmux/plugins"
-    git clone https://github.com/tmux-plugins/tpm "$HOME/tmux/plugins/tpm"
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+    git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 fi
 
-# Backup existing files before creating symbolic links
-CONFIG_FILES=(
-    ".zshrc"
-    ".tmux.conf"
-    ".gitconfig"
-)
-
-for file in "${CONFIG_FILES[@]}"; do
-    if [ -f "$HOME/$file" ]; then
-        mv "$HOME/$file" "$HOME/$file.bak"
-        echo "Backed up $file to $file.bak"
-    fi
-    if [ ! -L "$HOME/$file" ]; then
-        ln -s "$PWD/$file" "$HOME/$file"
-        echo "Created symbolic link for $file"
-    else
-        echo "Symbolic link for $file already exists, skipping..."
-    fi
-done
+# Set Zsh as the default shell
+if [ "$SHELL" != "$(which zsh)" ]; then
+    echo "Changing default shell to Zsh..."
+    chsh -s "$(which zsh)"
+    echo "Default shell changed to Zsh. Please log out and log back in for changes to take effect."
+else
+    echo "Zsh is already the default shell."
+fi
 
 # Install Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -70,16 +57,25 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
 else
     echo "Oh My Zsh is already installed."
 fi
+# Backup existing files before creating symbolic links
+CONFIG_FILES=(
+    ".zshrc"
+    ".tmux.conf"
+    ".gitconfig"
+)
 
-# Set Zsh as the default shell
-if [ "$SHELL" != "$(which zsh)" ]; then
-    echo "Changing default shell to Zsh..."
-    chsh -s "$(which zsh)"
-    echo "Default shell changed to Zsh. Please log out and log back in for changes to take effect."
-else
-    echo "Zsh is already the default shell."
-fi
-
+for file in "${CONFIG_FILES[@]}"; do
+    if [ -f "$HOME/$file" ]; then
+        mv "$HOME/$file" "$HOME/$file.bak"
+        echo "Backed up $file to $file.bak"
+    fi  
+    if [ ! -L "$HOME/$file" ]; then
+        ln -s "$PWD/$file" "$HOME/$file"
+        echo "Created symbolic link for $file"
+    else
+        echo "Symbolic link for $file already exists, skipping..."
+    fi
+done
 # Install Neovim
 if ! command -v nvim &> /dev/null; then
     curl -LO https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-x86_64.tar.gz
@@ -88,6 +84,11 @@ if ! command -v nvim &> /dev/null; then
     /opt/nvim/bin/nvim --version
 else
     echo "Neovim is already installed."
+fi
+
+if [ ! -d "$HOME/.config" ]; then
+    echo "Creating configuration directory..."
+    mkdir -p "$HOME/.config"
 fi
 
 # Create symbolic link for Neovim configuration
