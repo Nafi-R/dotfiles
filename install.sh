@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Update and upgrade the system
+sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update && sudo apt upgrade -y
 
 # Install packages
@@ -12,6 +13,9 @@ PACKAGES=(
     tmux
     ripgrep
     fzf
+    python3.10
+    python3.10-venv
+    python3.10-dev
 )
 
 echo "Installing packages..."
@@ -21,89 +25,78 @@ done
 
 echo "Packages installed successfully!"
 
+# Install tmux plugin manager (TPM)
+if [ ! -d "$HOME/.config/tmux/plugins/tpm" ]; then
+    echo "Installing tmux plugin manager (TPM)..."
+    mkdir -p "$HOME/.config/tmux/plugins"
+    git clone https://github.com/tmux-plugins/tpm "$HOME/tmux/plugins/tpm"
+fi
+
+# Backup existing files before creating symbolic links
+CONFIG_FILES=(
+    ".zshrc"
+    ".tmux.conf"
+    ".gitconfig"
+)
+
+for file in "${CONFIG_FILES[@]}"; do
+    if [ -f "$HOME/$file" ]; then
+        mv "$HOME/$file" "$HOME/$file.bak"
+        echo "Backed up $file to $file.bak"
+    fi
+    if [ ! -L "$HOME/$file" ]; then
+        ln -s "$PWD/$file" "$HOME/$file"
+        echo "Created symbolic link for $file"
+    else
+        echo "Symbolic link for $file already exists, skipping..."
+    fi
+done
+
 # Install Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "Installing Oh My Zsh..."
-
-# Install dependencies for Oh My Zsh
+    # Install dependencies for Oh My Zsh
     sudo apt install -y zsh-syntax-highlighting zsh-autosuggestions
-
     # Install Oh My Zsh
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-
     echo "Oh My Zsh installed successfully!"
 else
     echo "Oh My Zsh is already installed."
 fi
+
 # Set Zsh as the default shell
 if [ "$SHELL" != "$(which zsh)" ]; then
     echo "Changing default shell to Zsh..."
     chsh -s "$(which zsh)"
-    echo "Default shell changed to Zsh. Please log out and log back in for changes
-    to take effect."
+    echo "Default shell changed to Zsh. Please log out and log back in for changes to take effect."
 else
     echo "Zsh is already the default shell."
 fi
 
-# Install neovim
+# Install Neovim
 if ! command -v nvim &> /dev/null; then
-    echo "Installing Neovim..."
-    sudo apt install -y neovim
-    echo "Neovim installed successfully!"
+    curl -LO https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-x86_64.tar.gz
+    sudo rm -rf /opt/nvim
+    sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+    ./nvim-linux-x86_64/bin/nvim
 else
     echo "Neovim is already installed."
 fi
-
-# Make symboilic links for configuration files
-CONFIG_FILES=(
-    ".zshrc"
-    ".tmux.conf"
-)
-
-echo "Creating symbolic links for configuration files..."
-for file in "${CONFIG_FILES[@]}"; do
-    if [ -f "$HOME/$file" ]; then
-        echo "File $file already exists, skipping..."
-    else
-        ln -s "$PWD/$file" "$HOME/$file"
-        echo "Created symbolic link for $file"
-    fi
-done
-echo "Symbolic links created successfully!"
 
 # Create symbolic link for Neovim configuration
 if [ ! -d "$HOME/.config/nvim" ]; then
     echo "Creating symbolic link for Neovim configuration..."
     mkdir -p "$HOME/.config"
-    ln -s "$PWD/nvim" "$HOME/.config/nvim"
+    ln -s "$PWD/.config/nvim" "$HOME/.config/nvim"
     echo "Neovim configuration linked successfully!"
 else
     echo "Neovim configuration already exists, skipping..."
 fi
 
-# Create symbolic link for tmux configuration
-if [ ! -d "$HOME/.config/tmux" ]; then
-    echo "Creating symbolic link for tmux configuration..."
-    mkdir -p "$HOME/.config"
-    ln -s "$PWD/tmux" "$HOME/.config/tmux"
-    echo "Tmux configuration linked successfully!"
-else
-    echo "Tmux configuration already exists, skipping..."
-fi
-
-# Add all my .local/bin/<scripts> to PATH
-if ! grep -q ".local/bin" "$HOME/.zshrc"; then
-    echo "Adding .local/bin to PATH in .zshrc..."
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
-    echo ".local/bin added to PATH in .zshrc."
-else
-    echo ".local/bin is already in PATH in .zshrc."
-fi
-
 # chmod +x for all scripts in .local/bin
 if [ -d "$HOME/.local/bin" ]; then
     echo "Making scripts in .local/bin executable..."
-    find "$HOME/.local/bin" -type f -name "*.sh" -exec chmod+x {} \;
+    find "$HOME/.local/bin" -type f -name "*.sh" -exec chmod +x {} \;
     echo "Scripts in .local/bin are now executable."
 else
     echo ".local/bin directory does not exist, skipping chmod."
