@@ -47,6 +47,7 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
     # Install dependencies for Oh My Zsh
     sudo apt install -y zsh-syntax-highlighting zsh-autosuggestions
     # Install Oh My Zsh
+    zsh
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     echo "Oh My Zsh installed successfully!"
 else
