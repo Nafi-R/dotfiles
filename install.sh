@@ -73,10 +73,11 @@ for file in "${CONFIG_FILES[@]}"; do
 done
 # Install Neovim
 if ! command -v nvim &> /dev/null; then
+    echo "Neovim is not installed. Installing Neovim..."
     curl -LO https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-x86_64.tar.gz
     sudo rm -rf /opt/nvim
     sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
-    /opt/nvim/bin/nvim --version
+    /opt/nvim-linux-x86_64/bin/nvim --version
 else
     echo "Neovim is already installed."
 fi
@@ -104,3 +105,5 @@ if [ -d "$PWD/.local/bin" ]; then
 else
     echo ".local/bin directory does not exist, skipping chmod."
 fi
+
+source "$HOME/.zshrc"
