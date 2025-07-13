@@ -22,6 +22,7 @@ dependencies=(
     "ripgrep"
     "fzf"
     "vim"
+    "make"
 )
 
 for dep in "${dependencies[@]}"; do
