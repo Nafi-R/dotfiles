@@ -17,7 +17,6 @@ dependencies=(
     "curl"
     "git"
     "gcc"
-    "zsh"
     "tmux"
     "ripgrep"
     "fzf"
@@ -101,7 +100,3 @@ if [ -d "$dotfiles_path/.local/bin" ]; then
 else
     echo ".local/bin directory does not exist, skipping chmod."
 fi
-
-# Install Zsh and Oh My Zsh
-chmod +x "$dotfiles_path/install_zsh.sh"
-"$dotfiles_path/install_zsh.sh"
