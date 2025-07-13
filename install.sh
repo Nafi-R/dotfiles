@@ -8,6 +8,15 @@ info() {
     echo -e "\033[1;34m$1\033[0m"
 }
 
+error() {
+    echo -e "\033[1;31m$1\033[0m" >&2
+    exit 1
+}
+
+warning() {
+    echo -e "\033[1;33m$1\033[0m"
+}
+
 info "Installing Nafi's dotfiles..."
 info "Updating and upgrading the system..."
 sudo apt update && sudo apt upgrade -y
@@ -33,7 +42,6 @@ done
 if ! command -v python3.10 &> /dev/null; then
     echo "Python 3.10 is not available. Installing pyenv..."
     curl https://pyenv.run | bash
-    export PATH="$HOME/.pyenv/bin:$PATH"
     eval "$(pyenv init --path)"
     pyenv install 3.10.7
     pyenv global 3.10.7
@@ -56,13 +64,13 @@ CONFIG_FILES=(
 for file in "${CONFIG_FILES[@]}"; do
     if [ -f "$HOME/$file" ]; then
         mv "$HOME/$file" "$HOME/$file.bak"
-        echo "Backed up $file to $file.bak"
+        info "Backed up $file to $file.bak"
     fi  
     if [ ! -L "$HOME/$file" ]; then
         ln -s "$dotfiles_path/$file" "$HOME/$file"
-        echo "Created symbolic link for $file"
+        info "Created symbolic link for $file"
     else
-        echo "Symbolic link for $file already exists, skipping..."
+        info "Symbolic link for $file already exists, skipping..."
     fi
 done
 
@@ -74,13 +82,12 @@ if ! command -v nvim &> /dev/null; then
     sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
     /opt/nvim-linux-x86_64/bin/nvim --version
 else
-    echo "Neovim is already installed."
+    warning "Neovim is already installed."
 fi
 
-git submodule update --init --recursive
 # Create configuration directory if it doesn't exist
 if [ ! -d "$HOME/.config" ]; then
-    echo "Creating configuration directory..."
+    info "Creating configuration directory..."
     mkdir -p "$HOME/.config"
 fi
 
@@ -89,5 +96,5 @@ if [ ! -L "$HOME/.config/nvim" ]; then
     git clone https://github.com/Nafi-R/nafi.nvim.git "$HOME/.config/nvim"
     info "Neovim configuration added to $HOME/.config/nvim"
 else
-    echo "Neovim configuration already exists, skipping..."
+    warning "Neovim configuration already exists, skipping..."
 fi

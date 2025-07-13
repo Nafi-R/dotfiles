@@ -73,7 +73,7 @@ dotfiles_path="$PWD"
 
 for file in "${CONFIG_FILES[@]}"; do
   if [ -f "$HOME/$file" ]; then
-      mv "$HOME/$file" "$HOME/$file.bak"
+      ln -s "$HOME/$file" "$HOME/$file.bak"
       echo "Backed up $file to $file.bak"
   fi  
   if [ ! -L "$HOME/$file" ]; then

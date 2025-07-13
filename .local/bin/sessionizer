@@ -1,20 +1,9 @@
 #!/usr/bin/env bash
 
-parent_dirs=(
-    "${HOME}/Nafi/Work"
-)
-
-child_dirs=(
-    "${HOME}/.config/tmux"
-    "${HOME}/.config/nvim"
-)
-
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    parent_dir_results=$(find $parent_dirs -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
-    child_dir_results=$(find $child_dirs -mindepth 0 -maxdepth 0 -type d 2>/dev/null)
-    selected=$(printf "%s\n%s" "$parent_dir_results" "$child_dir_results" | fzf)
+    selected=$(printf "%s\n%s" "${PARENT_WORKSPACES}" "${CHILD_WORKSPACES}" | fzf)
 fi
 
 if [[ -z $selected ]]; then
