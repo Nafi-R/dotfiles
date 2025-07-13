@@ -65,4 +65,21 @@ install_zsh
 install_oh_my_zsh
 set_zsh_default
 
+CONFIG_FILES=(
+    ".zshrc"
+)
+
+for file in "${CONFIG_FILES[@]}"; do
+    if [ -f "$HOME/$file" ]; then
+        mv "$HOME/$file" "$HOME/$file.bak"
+        echo "Backed up $file to $file.bak"
+    fi  
+    if [ ! -L "$HOME/$file" ]; then
+        ln -s "$dotfiles_path/$file" "$HOME/$file"
+        echo "Created symbolic link for $file"
+    else
+        echo "Symbolic link for $file already exists, skipping..."
+    fi
+done
+
 info "All done! Restart your terminal to use Zsh."

@@ -4,10 +4,34 @@
 dotfiles_path="$PWD"
 
 # Update and upgrade the system
-sudo apt update && sudo apt upgrade -y
+info() {
+    echo -e "\033[1;34m$1\033[0m"
+}
 
-# Install necessary dependencies
-sudo apt install -y software-properties-common curl git gcc zsh tmux ripgrep fzf vim
+info "Installing Nafi's dotfiles..."
+info "Updating and upgrading the system..."
+(sudo apt update && sudo apt upgrade -y) > /dev/null 2>&1 
+
+dependencies=(
+    "software-properties-common"
+    "curl"
+    "git"
+    "gcc"
+    "zsh"
+    "tmux"
+    "ripgrep"
+    "fzf"
+    "vim"
+)
+
+for dep in "${dependencies[@]}"; do
+    if ! dpkg -l | grep -q "$dep"; then
+        info "Installing $dep..."
+        (sudo apt install -y "$dep" 2>/dev/null) 
+    else
+        info "$dep is already installed."
+    fi
+done
 
 # Install Python using pyenv if python3.10 is not available
 if ! command -v python3.10 &> /dev/null; then
@@ -29,7 +53,6 @@ fi
 
 # Backup existing files before creating symbolic links
 CONFIG_FILES=(
-    ".zshrc"
     ".tmux.conf"
     ".gitconfig"
 )
@@ -82,9 +105,6 @@ else
     echo ".local/bin directory does not exist, skipping chmod."
 fi
 
-# Source Zsh configuration
-if [ "$SHELL" == "$(which zsh)" ]; then
-    source "$HOME/.zshrc"
-else
-    echo "Please switch to Zsh and run 'source ~/.zshrc' manually."
-fi
+# Install Zsh and Oh My Zsh
+chmod +x "$dotfiles_path/install_zsh.sh"
+"$dotfiles_path/install_zsh.sh"
