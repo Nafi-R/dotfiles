@@ -86,17 +86,8 @@ fi
 
 # Create symbolic link for Neovim configuration
 if [ ! -L "$HOME/.config/nvim" ]; then
-    ln -s "$dotfiles_path/.config/nvim" "$HOME/.config/nvim"
-    echo "Neovim configuration linked successfully!"
+    git clone https://github.com/Nafi-R/nafi.nvim.git "$HOME/.config/nvim"
+    info "Neovim configuration added to $HOME/.config/nvim"
 else
     echo "Neovim configuration already exists, skipping..."
-fi
-
-# chmod +x for all scripts in .local/bin
-if [ -d "$dotfiles_path/.local/bin" ]; then
-    echo "Making scripts in .local/bin executable..."
-    find "$dotfiles_path/.local/bin" -type f -name "*.sh" -exec chmod +x {} \;
-    echo "Scripts in .local/bin are now executable."
-else
-    echo ".local/bin directory does not exist, skipping chmod."
 fi
