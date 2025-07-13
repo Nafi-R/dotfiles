@@ -1,31 +1,26 @@
 #!/bin/bash
 
+# Define dotfiles path
+dotfiles_path="$PWD"
+
 # Update and upgrade the system
-sudo apt install software-properties-common
-sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt update && sudo apt upgrade -y
 
-# Install packages
-PACKAGES=(
-    gcc
-    git
-    curl
-    zsh
-    tmux
-    ripgrep
-    fzf
-    vim
-    python3.10
-    python3.10-venv
-    python3.10-dev
-)
+# Install necessary dependencies
+sudo apt install -y software-properties-common curl git gcc zsh tmux ripgrep fzf vim
 
-echo "Installing packages..."
-for package in "${PACKAGES[@]}"; do
-    sudo apt install -y "$package"
-done
-
-echo "Packages installed successfully!"
+# Install Python using pyenv if python3.10 is not available
+if ! command -v python3.10 &> /dev/null; then
+    echo "Python 3.10 is not available. Installing pyenv..."
+    curl https://pyenv.run | bash
+    export PATH="$HOME/.pyenv/bin:$PATH"
+    eval "$(pyenv init --path)"
+    pyenv install 3.10.0
+    pyenv global 3.10.0
+    echo "Python 3.10 installed successfully!"
+else
+    echo "Python 3.10 is already installed."
+fi
 
 # Install tmux plugin manager (TPM)
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
@@ -44,15 +39,13 @@ fi
 # Install Oh My Zsh
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "Installing Oh My Zsh..."
-    # Install dependencies for Oh My Zsh
     sudo apt install -y zsh-syntax-highlighting zsh-autosuggestions
-    # Install Oh My Zsh
-    zsh
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    zsh -c "sh -c \"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\" --unattended"
     echo "Oh My Zsh installed successfully!"
 else
     echo "Oh My Zsh is already installed."
 fi
+
 # Backup existing files before creating symbolic links
 CONFIG_FILES=(
     ".zshrc"
@@ -66,12 +59,13 @@ for file in "${CONFIG_FILES[@]}"; do
         echo "Backed up $file to $file.bak"
     fi  
     if [ ! -L "$HOME/$file" ]; then
-        ln -s "$PWD/$file" "$HOME/$file"
+        ln -s "$dotfiles_path/$file" "$HOME/$file"
         echo "Created symbolic link for $file"
     else
         echo "Symbolic link for $file already exists, skipping..."
     fi
 done
+
 # Install Neovim
 if ! command -v nvim &> /dev/null; then
     echo "Neovim is not installed. Installing Neovim..."
@@ -83,28 +77,32 @@ else
     echo "Neovim is already installed."
 fi
 
+# Create configuration directory if it doesn't exist
 if [ ! -d "$HOME/.config" ]; then
     echo "Creating configuration directory..."
     mkdir -p "$HOME/.config"
 fi
 
 # Create symbolic link for Neovim configuration
-if [ ! -d "$HOME/.config/nvim" ]; then
-    echo "Creating symbolic link for Neovim configuration..."
-    mkdir -p "$HOME/.config"
-    ln -s "$PWD/.config/nvim" "$HOME/.config/nvim"
+if [ ! -L "$HOME/.config/nvim" ]; then
+    ln -s "$dotfiles_path/.config/nvim" "$HOME/.config/nvim"
     echo "Neovim configuration linked successfully!"
 else
     echo "Neovim configuration already exists, skipping..."
 fi
 
 # chmod +x for all scripts in .local/bin
-if [ -d "$PWD/.local/bin" ]; then
+if [ -d "$dotfiles_path/.local/bin" ]; then
     echo "Making scripts in .local/bin executable..."
-    find "$PWD/.local/bin" -type f -name "*.sh" -exec chmod +x {} \;
+    find "$dotfiles_path/.local/bin" -type f -name "*.sh" -exec chmod +x {} \;
     echo "Scripts in .local/bin are now executable."
 else
     echo ".local/bin directory does not exist, skipping chmod."
 fi
 
-source "$HOME/.zshrc"
+# Source Zsh configuration
+if [ "$SHELL" == "$(which zsh)" ]; then
+    source "$HOME/.zshrc"
+else
+    echo "Please switch to Zsh and run 'source ~/.zshrc' manually."
+fi
