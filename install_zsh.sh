@@ -72,13 +72,14 @@ CONFIG_FILES=(
 dotfiles_path="$PWD"
 
 for file in "${CONFIG_FILES[@]}"; do
-    if [ -f "$HOME/$file" ]; then
-        mv "$HOME/$file" "$HOME/$file.bak"
-        echo "Backed up $file to $file.bak"
-    fi  
-    if [ ! -L "$HOME/$file" ]; then
-        cp "$dotfiles_path/$file" "$HOME/$file"
-        echo "Copied $file to $HOME"
+  if [ -f "$HOME/$file" ]; then
+      mv "$HOME/$file" "$HOME/$file.bak"
+      echo "Backed up $file to $file.bak"
+  fi  
+  if [ ! -L "$HOME/$file" ]; then
+      cp "$dotfiles_path/$file" "$HOME/$file"
+      echo "Copied $file to $HOME"
+  fi
 done
 
 info "All done! Restart your terminal to use Zsh."
