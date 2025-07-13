@@ -10,7 +10,7 @@ info() {
 
 info "Installing Nafi's dotfiles..."
 info "Updating and upgrading the system..."
-(sudo apt update && sudo apt upgrade -y) > /dev/null 2>&1 
+sudo apt update && sudo apt upgrade -y
 
 dependencies=(
     "software-properties-common"
@@ -25,12 +25,8 @@ dependencies=(
 )
 
 for dep in "${dependencies[@]}"; do
-    if ! dpkg -l | grep -q "$dep"; then
-        info "Installing $dep..."
-        (sudo apt install -y "$dep" 2>/dev/null) 
-    else
-        info "$dep is already installed."
-    fi
+    info "Installing $dep..."
+    (sudo apt install -y "$dep" 2>/dev/null) 
 done
 
 # Install Python using pyenv if python3.10 is not available

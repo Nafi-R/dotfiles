@@ -69,17 +69,16 @@ CONFIG_FILES=(
     ".zshrc"
 )
 
+dotfiles_path="$PWD"
+
 for file in "${CONFIG_FILES[@]}"; do
     if [ -f "$HOME/$file" ]; then
         mv "$HOME/$file" "$HOME/$file.bak"
         echo "Backed up $file to $file.bak"
     fi  
     if [ ! -L "$HOME/$file" ]; then
-        ln -s "$dotfiles_path/$file" "$HOME/$file"
-        echo "Created symbolic link for $file"
-    else
-        echo "Symbolic link for $file already exists, skipping..."
-    fi
+        cp "$dotfiles_path/$file" "$HOME/$file"
+        echo "Copied $file to $HOME"
 done
 
 info "All done! Restart your terminal to use Zsh."
