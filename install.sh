@@ -98,3 +98,11 @@ if [ ! -L "$HOME/.config/nvim" ]; then
 else
     warning "Neovim configuration already exists, skipping..."
 fi
+
+SCRIPTS=(find ${dotfiles_path}/.local/bin -mindepth 0 -maxdepth 0 -type f)
+
+for script_path in "${SCRIPTS[@]}"; do
+    script_name=$(basename "$script_path")
+    info "Installing script: $script_name"
+    cp "$script_path" "$HOME/.local/bin/$script"
+done
