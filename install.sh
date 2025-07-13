@@ -15,8 +15,8 @@ if ! command -v python3.10 &> /dev/null; then
     curl https://pyenv.run | bash
     export PATH="$HOME/.pyenv/bin:$PATH"
     eval "$(pyenv init --path)"
-    pyenv install 3.10.0
-    pyenv global 3.10.0
+    pyenv install 3.10.7
+    pyenv global 3.10.7
     echo "Python 3.10 installed successfully!"
 else
     echo "Python 3.10 is already installed."
@@ -25,25 +25,6 @@ fi
 # Install tmux plugin manager (TPM)
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
     git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-fi
-
-# Set Zsh as the default shell
-if [ "$SHELL" != "$(which zsh)" ]; then
-    echo "Changing default shell to Zsh..."
-    chsh -s "$(which zsh)"
-    echo "Default shell changed to Zsh. Please log out and log back in for changes to take effect."
-else
-    echo "Zsh is already the default shell."
-fi
-
-# Install Oh My Zsh
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "Installing Oh My Zsh..."
-    sudo apt install -y zsh-syntax-highlighting zsh-autosuggestions
-    zsh -c "sh -c \"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\" --unattended"
-    echo "Oh My Zsh installed successfully!"
-else
-    echo "Oh My Zsh is already installed."
 fi
 
 # Backup existing files before creating symbolic links
@@ -77,6 +58,7 @@ else
     echo "Neovim is already installed."
 fi
 
+git submodule update --init --recursive
 # Create configuration directory if it doesn't exist
 if [ ! -d "$HOME/.config" ]; then
     echo "Creating configuration directory..."
