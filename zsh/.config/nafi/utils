@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+source "${HOME}/.config/nafi/directories"
+
+sessionizer() {
+    if [[ $# -eq 1 ]]; then
+        selected=$1
+    else
+        selected=$(printf "%s\n%s" "${PARENT_WORKSPACES}" "${CHILD_WORKSPACES}" | fzf)
+    fi
+
+    if [[ -z $selected ]]; then
+        return
+    fi
+
+    selected_name=$(basename "$selected" | tr . _)
+    tmux_running=$(pgrep tmux)
+
+    if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+        tmux new-session -s $selected_name -c $selected
+        return
+    fi
+
+    if ! tmux has-session -t=$selected_name 2> /dev/null; then
+        tmux new-session -ds $selected_name -c $selected
+    fi
+
+    if [[ -z $TMUX ]]; then
+        tmux attach -t $selected_name
+    else
+        tmux switch-client -t $selected_name
+    fi
+}
+
+
+goto(){
+    if [[ $# -eq 1 ]]; then
+        selected=$1
+    else
+        selected=$(printf "%s\n%s" "${PARENT_WORKSPACES}" "${CHILD_WORKSPACES}" | fzf)
+    fi
+
+    if [[ -z $selected ]]; then
+        return
+    fi
+
+    selected_name=$(basename "$selected" | tr . _)
+    if [[ -d $selected ]]; then
+        cd "$selected" || exit
+    else
+        echo "Selected path is not a directory."
+        return 
+    fi
+}
+
+
+activate(){
+    # Find all Python virtual environments in the current directory (recursively)
+    venvs=$(find .. -type f -maxdepth 4 -name 'activate')
+
+    if [[ -z "$venvs" ]]; then
+        echo "No Python virtual environments found in the current directory."
+        exit 1
+    fi
+
+    # Use fzf to select a virtual environment
+    selected=$(echo "$venvs" | fzf --prompt="Select a virtualenv to activate: ")
+
+    if [[ -z "$selected" ]]; then
+        echo "No virtual environment selected."
+        exit 1
+    fi
+
+    # Activate the selected virtual environment
+    # shellcheck source=/dev/null
+    source "$selected"
+}
