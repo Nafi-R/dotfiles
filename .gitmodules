@@ -1,6 +1,3 @@
-[submodule ".config/nvim"]
-	path = .config/nvim
-	url = https://github.com/Nafi-R/nafi.nvim
-[submodule ".config/tmux"]
-	path = .config/tmux
-	url = https://github.com/Nafi-R/nafi.tmux
+[submodule "nvim/.config/nvim"]
+	path = nvim/.config/nvim
+	url = https://github.com/nafi-r/nafi.nvim

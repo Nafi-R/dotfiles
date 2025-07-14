@@ -31,6 +31,7 @@ dependencies=(
     "fzf"
     "vim"
     "make"
+    "stow"
 )
 
 for dep in "${dependencies[@]}"; do
@@ -55,25 +56,6 @@ if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
     git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 fi
 
-# Backup existing files before creating symbolic links
-CONFIG_FILES=(
-    ".tmux.conf"
-    ".gitconfig"
-)
-
-for file in "${CONFIG_FILES[@]}"; do
-    if [ -f "$HOME/$file" ]; then
-        mv "$HOME/$file" "$HOME/$file.bak"
-        info "Backed up $file to $file.bak"
-    fi  
-    if [ ! -L "$HOME/$file" ]; then
-        ln -s "$dotfiles_path/$file" "$HOME/$file"
-        info "Created symbolic link for $file"
-    else
-        info "Symbolic link for $file already exists, skipping..."
-    fi
-done
-
 # Install Neovim
 if ! command -v nvim &> /dev/null; then
     echo "Neovim is not installed. Installing Neovim..."
@@ -84,25 +66,3 @@ if ! command -v nvim &> /dev/null; then
 else
     warning "Neovim is already installed."
 fi
-
-# Create configuration directory if it doesn't exist
-if [ ! -d "$HOME/.config" ]; then
-    info "Creating configuration directory..."
-    mkdir -p "$HOME/.config"
-fi
-
-# Create symbolic link for Neovim configuration
-if [ ! -L "$HOME/.config/nvim" ]; then
-    git clone https://github.com/Nafi-R/nafi.nvim.git "$HOME/.config/nvim"
-    info "Neovim configuration added to $HOME/.config/nvim"
-else
-    warning "Neovim configuration already exists, skipping..."
-fi
-
-SCRIPTS=(find ${dotfiles_path}/.local/bin -mindepth 0 -maxdepth 0 -type f)
-
-for script_path in "${SCRIPTS[@]}"; do
-    script_name=$(basename "$script_path")
-    info "Installing script: $script_name"
-    cp "$script_path" "$HOME/.local/bin/$script"
-done
