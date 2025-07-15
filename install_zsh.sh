@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit on any error
+set -e # Exit on any error
 
 # Function to print messages
 info() {
@@ -42,9 +42,11 @@ install_oh_my_zsh() {
     info "Oh My Zsh is already installed."
   else
     info "Installing Oh My Zsh..."
-    export RUNZSH=no  # prevent auto-switch
-    export CHSH=no    # we'll set shell ourselves
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    export RUNZSH=no # prevent auto-switch
+    export CHSH=no   # we'll set shell ourselves
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
   fi
 }
 
@@ -65,21 +67,4 @@ install_zsh
 install_oh_my_zsh
 set_zsh_default
 
-CONFIG_FILES=(
-    ".zshrc"
-)
-
-dotfiles_path="$PWD"
-
-for file in "${CONFIG_FILES[@]}"; do
-  if [ -f "$HOME/$file" ]; then
-      ln -s "$HOME/$file" "$HOME/$file.bak"
-      echo "Backed up $file to $file.bak"
-  fi  
-  if [ ! -L "$HOME/$file" ]; then
-      cp "$dotfiles_path/$file" "$HOME/$file"
-      echo "Copied $file to $HOME"
-  fi
-done
-
-info "All done! Restart your terminal to use Zsh."
+warning "Zsh installed. Move your config to the home directory with 'stow zsh'"
