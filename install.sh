@@ -63,6 +63,7 @@ if ! command -v nvim &> /dev/null; then
     sudo rm -rf /opt/nvim
     sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
     /opt/nvim-linux-x86_64/bin/nvim --version
+    rm -rf nvim-linux-x86_64.tar.gz
 else
     warning "Neovim is already installed."
 fi
