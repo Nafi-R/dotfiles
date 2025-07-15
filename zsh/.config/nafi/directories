@@ -16,4 +16,4 @@ git_worktrees=(
 export PARENT_WORKSPACES=$(find -L "${parent_dirs[@]}" -mindepth 1 -maxdepth 1 -type d -not -name '.*'  2>/dev/null)
 export CHILD_WORKSPACES=$(find -L "${child_dirs[@]}" -mindepth 0 -maxdepth 0 -type d 2>/dev/null)
 export GIT_WORKTREES=$(find -L "${git_worktrees[@]}" -mindepth 2 -maxdepth 2 -type d -not -name '.*' 2>/dev/null)
-export ALL_WORKSPACES="${PARENT_WORKSPACES}\n${CHILD_WORKSPACES}\n${GIT_WORKTREES}"
+export ALL_WORKSPACES=$(printf "%s\n%s\n%s" "${PARENT_WORKSPACES}" "${CHILD_WORKSPACES}" "${GIT_WORKTREES}")
