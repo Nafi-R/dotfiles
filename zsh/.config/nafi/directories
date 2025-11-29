@@ -1,19 +1,51 @@
 #!/usr/bin/env bash
 
-parent_dirs=(
-    "${HOME}/Repos"
+# --- 1. Define Root Directories ---
+# Use descriptive, lowercase array names
+parent_roots=(
+    "${HOME}/Work"
 )
 
-child_dirs=(
+child_roots=(
     "${HOME}/.config/tmux"
     "${HOME}/.config/nvim"
+    "${HOME}/dotfiles"
 )
 
-git_worktrees=(
+worktree_roots=(
     "${HOME}/worktrees"
 )
 
-export PARENT_WORKSPACES=$(find -L "${parent_dirs[@]}" -mindepth 1 -maxdepth 1 -type d -not -name '.*'  2>/dev/null)
-export CHILD_WORKSPACES=$(find -L "${child_dirs[@]}" -mindepth 0 -maxdepth 0 -type d 2>/dev/null)
-export GIT_WORKTREES=$(find -L "${git_worktrees[@]}" -mindepth 2 -maxdepth 2 -type d -not -name '.*' 2>/dev/null)
-export ALL_WORKSPACES=$(printf "%s\n%s\n%s" "${PARENT_WORKSPACES}" "${CHILD_WORKSPACES}" "${GIT_WORKTREES}")
+# --- 2. Gather All Workspaces using a single command substitution block ---
+# This block runs a series of commands and collects all their standard output
+# into the ALL_WORKSPACES variable, separated by newlines.
+ALL_WORKSPACES=$(
+    # PARENT_WORKSPACES: Subdirectories of roots, excluding dotfiles, following symlinks (-L)
+    for dir in "${parent_roots[@]}"; do
+        if [[ -d "$dir" ]]; then
+            # Find subdirectories one level deep
+            # We use 2>/dev/null to silence potential permission errors inside existing directories
+            find -L "$dir" -mindepth 1 -maxdepth 1 -type d -not -name '.*' 2>/dev/null
+        fi
+    done
+
+    # CHILD_WORKSPACES: The roots themselves (e.g., config directories)
+    for dir in "${child_roots[@]}"; do
+        if [[ -d "$dir" ]]; then
+            # If the directory exists, print it directly
+            printf "%s\n" "$dir"
+        fi
+    done
+
+    # GIT_WORKTREES: Two levels deep subdirectories, excluding dotfiles, following symlinks (-L)
+    for dir in "${worktree_roots[@]}"; do
+        if [[ -d "$dir" ]]; then
+            # Find subdirectories two levels deep (standard worktree structure)
+            find -L "$dir" -mindepth 2 -maxdepth 2 -type d -not -name '.*' 2>/dev/null
+        fi
+    done
+)
+
+# --- 3. Export the final result ---
+# The result is already a newline-separated string, perfect for fzf input.
+export ALL_WORKSPACES
