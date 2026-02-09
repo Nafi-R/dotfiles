@@ -4,11 +4,11 @@
 # Use descriptive, lowercase array names
 parent_roots=(
     "${HOME}/Work"
+    "${HOME}/.config"
 )
 
 child_roots=(
     "${HOME}/.config/tmux"
-    "${HOME}/.config/nvim"
     "${HOME}/dotfiles"
 )
 
