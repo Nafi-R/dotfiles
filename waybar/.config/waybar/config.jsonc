@@ -66,7 +66,7 @@
     "on-click": "omarchy-launch-or-focus-tui btop"
   },
   "clock": {
-    "format": "{:%A %OI-%b-%y %OI:%M %p}",
+    "format": "{:%A %d-%b-%y %OI:%M %p}",
     "tooltip": false,
     "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
   },
