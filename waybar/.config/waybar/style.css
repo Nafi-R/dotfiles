@@ -1,4 +1,5 @@
-@import "../omarchy/current/theme/waybar.css";
+@define-color foreground #ffffff;
+@define-color background #1a1b26;
 
 * {
   background-color: @background;
@@ -33,7 +34,6 @@
 #cpu,
 #battery,
 #pulseaudio,
-#custom-omarchy,
 #custom-screenrecording-indicator,
 #custom-update {
   min-width: 12px;
