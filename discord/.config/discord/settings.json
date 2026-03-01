@@ -1,15 +1,18 @@
 {
-  "IS_MAXIMIZED": false,
+  "IS_MAXIMIZED": true,
   "IS_MINIMIZED": false,
   "WINDOW_BOUNDS": {
     "x": 1280,
-    "y": 13,
+    "y": 20,
     "width": 960,
-    "height": 527
+    "height": 520
   },
   "SKIP_HOST_UPDATE": true,
   "offloadAdmControls": false,
   "chromiumSwitches": {},
-  "BACKGROUND_COLOR": "#121214",
-  "asyncVideoInputDeviceInit": false
+  "BACKGROUND_COLOR": "#000000",
+  "asyncVideoInputDeviceInit": false,
+  "DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING": true,
+  "MIN_WIDTH": 940,
+  "MIN_HEIGHT": 500
 }
