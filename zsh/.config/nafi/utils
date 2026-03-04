@@ -27,7 +27,6 @@ sessionizer() {
         tmux new-session -ds $selected_name -c $selected \; \
             send-keys "${EDITOR}" C-m \; \
             new-window -n "shell" -c $selected
-        return
     fi
 
     if [[ -z $TMUX ]]; then
