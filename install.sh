@@ -120,6 +120,7 @@ install_dependencies() {
         neovim
         unzip
         walker
+        opencode
     )
 
     for dep in "${deps[@]}"; do
