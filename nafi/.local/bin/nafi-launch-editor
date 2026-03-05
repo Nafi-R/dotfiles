@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Launch the default editor as determined by $EDITOR (or nvim if missing).
+# Starts terminal editors in a terminal window, others as regular applications.
+
+command -v "$EDITOR" &>/dev/null || EDITOR=nvim
+
+case "$EDITOR" in
+nvim | vim | nano | micro | hx | helix | fresh)
+  exec nafi-launch-tui "$EDITOR" "$@"
+  ;;
+*)
+  exec setsid uwsm-app -- "$EDITOR" "$@"
+  ;;
+esac
