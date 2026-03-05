@@ -5,11 +5,11 @@
   "spacing": 0,
   "height": 41,
   "modules-left": [
-    "custom/power",
-    "hyprland/workspaces",
-    "wlr/taskbar"
+    "custom/power"
   ],
   "modules-center": [
+    "hyprland/workspaces",
+    "wlr/taskbar",
     "custom/update",
     "custom/screenrecording-indicator"
   ],
@@ -62,11 +62,11 @@
   },
   "cpu": {
     "interval": 5,
-    "format": "󰍛 ",
+    "format": "󰍛",
     "on-click": "omarchy-launch-or-focus-tui btop"
   },
   "clock": {
-    "format": "{:%A %d-%b-%y %OI:%M %p}",
+    "format": "{:%A %d %b %y %OI:%M %p}",
     "tooltip": false,
     "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
   },
