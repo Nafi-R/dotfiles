@@ -10,7 +10,6 @@
   "modules-center": [
     "hyprland/workspaces",
     "wlr/taskbar",
-    "custom/update",
     "custom/screenrecording-indicator"
   ],
   "modules-right": [
@@ -52,23 +51,15 @@
       "5": []
     }
   },
-  "custom/update": {
-    "format": " ",
-    "exec": "omarchy-update-available",
-    "on-click": "omarchy-launch-floating-terminal-with-presentation omarchy-update",
-    "tooltip-format": "Omarchy update available",
-    "signal": 7,
-    "interval": 21600
-  },
   "cpu": {
     "interval": 5,
     "format": "󰍛",
-    "on-click": "omarchy-launch-or-focus-tui btop"
+    "on-click": "nafi-launch-or-focus-tui btop"
   },
   "clock": {
     "format": "{:%A %d %b %y %OI:%M %p}",
     "tooltip": false,
-    "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
+    "on-click-right": "nafi-launch-floating-terminal nafi-tz-select"
   },
   "network": {
     "format-icons": [
@@ -87,7 +78,7 @@
     "tooltip-format-disconnected": "Disconnected",
     "interval": 1,
     "spacing": 1,
-    "on-click": "omarchy-launch-wifi"
+    "on-click": "nafi-launch-wifi"
   },
   "bluetooth": {
     "format": "",
@@ -96,11 +87,11 @@
     "format-connected": "󰂱",
     "format-no-controller": "",
     "tooltip-format": "Devices connected: {num_connections}",
-    "on-click": "omarchy-launch-bluetooth"
+    "on-click": "nafi-launch-bluetooth"
   },
   "pulseaudio": {
     "format": "{icon} {volume}%",
-    "on-click": "omarchy-launch-or-focus-tui wiremix",
+    "on-click": "nafi-launch-or-focus-tui wiremix",
     "on-click-right": "pamixer -t",
     "tooltip-format": "Playing at {volume}%",
     "scroll-step": 5,
@@ -130,20 +121,20 @@
     "tooltip": false
   },
   "custom/screenrecording-indicator": {
-    "on-click": "omarchy-cmd-screenrecord",
-    "exec": "$OMARCHY_PATH/default/waybar/indicators/screen-recording.sh",
+    "on-click": "nafi-screen-record",
+    "exec": "nafi-indicator-screen-recording",
     "signal": 8,
     "return-type": "json"
   },
   "custom/idle-indicator": {
-    "on-click": "omarchy-toggle-idle",
-    "exec": "$OMARCHY_PATH/default/waybar/indicators/idle.sh",
+    "on-click": "nafi-toggle-idle",
+    "exec": "nafi-indicator-idle",
     "signal": 9,
     "return-type": "json"
   },
   "custom/notification-silencing-indicator": {
-    "on-click": "omarchy-toggle-notification-silencing",
-    "exec": "$OMARCHY_PATH/default/waybar/indicators/notification-silencing.sh",
+    "on-click": "nafi-toggle-notification-silencing",
+    "exec": "nafi-indicator-notification-silencing",
     "signal": 10,
     "return-type": "json"
   },
@@ -154,6 +145,6 @@
   "custom/power": {
     "format": " ",
     "tooltip": false,
-    "on-click": "omarchy-menu system"
+    "on-click": "nafi-menu-system"
   }
 }
