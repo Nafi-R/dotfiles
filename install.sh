@@ -119,6 +119,7 @@ install_dependencies() {
         fzf
         neovim
         unzip
+        walker
     )
 
     for dep in "${deps[@]}"; do
@@ -222,7 +223,6 @@ main() {
     install_brave
     install_tpm
     init_submodules
-    stow_packages
     setup_zsh
     info "Done! Restart your terminal or run 'exec zsh' to get started."
 }
