@@ -1,5 +1,0 @@
-#!/bin/bash
-
-# Launch audio controls TUI (wiremix).
-
-nafi-launch-or-focus-tui wiremix

@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# Launch or focus on a given TUI identified by the command passed in.
-# Ensures only one instance is open.
-
-APP_ID="org.nafi.$(basename "$1")"
-LAUNCH_COMMAND="nafi-launch-tui $@"
-
-exec nafi-launch-or-focus "$APP_ID" "$LAUNCH_COMMAND"

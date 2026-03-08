@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# Waybar indicator for idle lock status. Returns JSON for waybar custom module.
-
-if pgrep -x hypridle >/dev/null; then
-  echo '{"text": ""}'
-else
-  echo '{"text": "󱫖", "tooltip": "Idle lock disabled", "class": "active"}'
-fi

@@ -56,6 +56,13 @@ window#waybar {
   margin-right: 10px;
 }
 
+#mpris {
+  margin: 0px 10px;
+}
+
+#player {
+  padding: 0px 10px;
+}
 /* ── Workspaces ── */
 
 #workspaces {
@@ -117,14 +124,26 @@ window#waybar {
   color: @crust;
 }
 
-/* ── Right-side modules ── */
-
-#cpu {
+#player {
   background-color: alpha(@surface0, 0.7);
   border-radius: 8px;
   padding: 4px 10px;
   margin: 5px 2px;
   color: @teal;
+}
+
+/* ── Right-side modules ── */
+#stats {
+  background-color: alpha(@surface0, 0.7);
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin: 5px 2px;
+}
+
+
+#cpu {
+  color: @teal;
+  padding: 4px 10px;
 }
 
 #pulseaudio {
@@ -136,11 +155,8 @@ window#waybar {
 }
 
 #memory {
-  background-color: alpha(@surface0, 0.7);
-  border-radius: 8px;
-  padding: 4px 10px;
-  margin: 5px 2px;
   color: @peach;
+  padding: 4px 10px;
 }
 
 #disk {
@@ -152,10 +168,7 @@ window#waybar {
 }
 
 #temperature {
-  background-color: alpha(@surface0, 0.7);
-  border-radius: 8px;
   padding: 4px 10px;
-  margin: 5px 2px;
   color: @flamingo;
 }
 
@@ -180,7 +193,7 @@ window#waybar {
   border-radius: 8px;
   padding: 4px 12px;
   margin: 5px 2px;
-  color: @rosewater;
+  color: @green;
 }
 
 /* ── Tray & expander ── */

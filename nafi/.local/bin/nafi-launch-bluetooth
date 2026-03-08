@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# Launch bluetooth controls TUI (bluetui).
-# Unblocks bluetooth service if rfkill had blocked it.
-
-rfkill unblock bluetooth
-exec nafi-launch-or-focus-tui bluetui
