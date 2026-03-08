@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Launch a floating terminal and execute the command passed in.
+# Waits for the command to finish, then shows "Done" before closing.
+
+cmd="$*"
+exec setsid uwsm-app -- xdg-terminal-exec --app-id=org.nafi.terminal --title=Terminal -e bash -c "$cmd; if (( \$? != 130 )); then echo; echo 'Done. Press any key to close.'; read -n 1; fi"
