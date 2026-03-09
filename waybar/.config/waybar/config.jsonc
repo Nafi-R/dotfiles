@@ -15,9 +15,7 @@
   ],
   "modules-right": [
     "group/tray-expander",
-    "bluetooth",
-    "network",
-    "pulseaudio",
+    "group/utilities",
     "group/stats",
     "clock"
   ],
@@ -54,7 +52,8 @@
   },
   "cpu": {
     "interval": 5,
-    "format": "󰍛{usage:>2}%"
+    "format": "󰍛 {usage:>2}%",
+    "on-click": "nafi-launch-or-focus-tui btop"
   },
   "clock": {
     "format": "{:%A %d %b %y %OI:%M %p}",
@@ -90,7 +89,7 @@
     ],
     "format": "{icon} ",
     "format-wifi": "{icon}",
-    "format-ethernet": "󰀂 {ifname}",
+    "format-ethernet": "󰀂",
     "format-disconnected": "󰤮",
     "tooltip-format-wifi": "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
     "tooltip-format-ethernet": "⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
@@ -119,8 +118,8 @@
       "headset": "",
       "default": [
         "",
-        "",
-        ""
+        " ",
+        " "
       ]
     }
   },
@@ -167,28 +166,30 @@
     "on-click": "nafi-menu-system"
   },
   "custom/next": {
-    "format": "󰙡 ",
+    "format": "{}",
+    "exec": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused' && echo '󰙡 ' || echo ''",
+    "interval": 2,
     "on-click": "playerctl --player=spotify next && playerctl --player=youtube-music next",
     "tooltip": false
   },
   "custom/pause": {
-    "format": "{icon}",
-    //    "exec": "playerctl -l 2>/dev/null | head -n 1",
+    "format": "{}",
+    "exec": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused' && echo ' ' || echo ''",
+    "interval": 2,
     "on-click": "playerctl --player=spotify play-pause",
-    "tooltip": false,
-    "format-icons": [
-      " ",
-      " "
-    ]
+    "tooltip": false
   },
   "custom/previous": {
-    "format": "󰙣 ",
+    "format": "{}",
+    "exec": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused' && echo '󰙣 ' || echo ''",
+    "interval": 2,
     "on-click": "playerctl --player=spotify previous && playerctl --player=youtube-music previous",
     "tooltip": false
   },
   "mpris": {
     "format": "{player_icon} {title} - {artist} ",
     "format-paused": "{status_icon} {title} - {artist}",
+    "format-stopped": "",
     "player-icons": {
       "default": "<span foreground='#cba6f7'>󰝚 </span>",
       "spotify": "<span foreground='#a6e3a1'>󰓇 </span>",
@@ -199,9 +200,7 @@
     },
     "ignored-players": ["brave"],
     "tooltip-format": "Playing: {title} - {artist}",
-    "tooltip-format-paused": "Paused: {title} - {artist}",
-    "min-length": 5,
-    "min-width": 30
+    "tooltip-format-paused": "Paused: {title} - {artist}"
   },
   "group/player" : {
     "orientation": "horizontal",
@@ -212,9 +211,19 @@
       "custom/next"
     ]
   },
+  "group/utilities" : {
+    "orientation": "horizontal",
+    "modules": [
+    "bluetooth",
+    "network",
+    "pulseaudio"
+    ]
+  },
   "memory": {
     "interval": 2,
-    "format": "  {used:0.0f}/{total:0.0f} GB ({percentage}%)"
+    "format": "  {used:0.0f}/{total:0.0f} GB ({percentage}%)",
+    "on-click": "nafi-launch-or-focus-tui btop"
+
   },
   "temperature": {
     "thermal-zone": 2,
@@ -238,7 +247,8 @@
       "0",
       "",
       ""
-    ]
+    ],
+    "on-click": "nafi-launch-or-focus-tui btop"
   },
   "group/stats": {
     "orientation": "horizontal",
@@ -246,7 +256,6 @@
       "cpu",
       "memory",
       "temperature" 
-    ],
-    "on-click": "nafi-launch-or-focus-tui btop"
+    ]
   }
 }
