@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Restores the wallpaper symlink from persisted XDG state and applies it.
+# Called on login (from hyprland autostart) to recreate the symlink that
+# is not tracked in the dotfiles repo.
+
+WALLPAPER_LINK="$HOME/.config/hypr/theme/wallpaper"
+STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/nafi/wallpaper"
+
+if [[ -f $STATE_FILE ]]; then
+  IMAGE="$(cat "$STATE_FILE")"
+  if [[ -f $IMAGE ]]; then
+    ln -nsf "$IMAGE" "$WALLPAPER_LINK"
+    swww img "$WALLPAPER_LINK" \
+      --transition-type fade \
+      --transition-duration 1 \
+      --transition-fps 60
+    exit 0
+  fi
+fi
+
+# Fallback: if state file is missing or image doesn't exist,
+# just use whatever the symlink already points to (if anything)
+if [[ -L $WALLPAPER_LINK && -f $WALLPAPER_LINK ]]; then
+  swww img "$WALLPAPER_LINK" \
+    --transition-type fade \
+    --transition-duration 1 \
+    --transition-fps 60
+fi
