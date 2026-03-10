@@ -3,6 +3,9 @@
 # Sets the specified image as the current wallpaper using swww.
 # Updates the symlink at ~/.config/hypr/theme/wallpaper so hyprlock
 # and other consumers automatically pick up the change.
+#
+# The chosen wallpaper path is persisted in XDG state so it survives
+# reboots without touching the dotfiles git index.
 
 if [[ -z $1 ]]; then
   echo "Usage: nafi-wallpaper-set <path-to-image>" >&2
@@ -11,11 +14,17 @@ fi
 
 IMAGE="$1"
 WALLPAPER_LINK="$HOME/.config/hypr/theme/wallpaper"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/nafi"
+STATE_FILE="$STATE_DIR/wallpaper"
 
 if [[ ! -f $IMAGE ]]; then
   echo "Error: file not found: $IMAGE" >&2
   exit 1
 fi
+
+# Persist the choice to XDG state
+mkdir -p "$STATE_DIR"
+printf '%s\n' "$IMAGE" > "$STATE_FILE"
 
 # Update the symlink
 ln -nsf "$IMAGE" "$WALLPAPER_LINK"
