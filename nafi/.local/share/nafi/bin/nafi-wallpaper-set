@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Sets the specified image as the current wallpaper using swww.
+# Updates the symlink at ~/.config/hypr/theme/wallpaper so hyprlock
+# and other consumers automatically pick up the change.
+
+if [[ -z $1 ]]; then
+  echo "Usage: nafi-wallpaper-set <path-to-image>" >&2
+  exit 1
+fi
+
+IMAGE="$1"
+WALLPAPER_LINK="$HOME/.config/hypr/theme/wallpaper"
+
+if [[ ! -f $IMAGE ]]; then
+  echo "Error: file not found: $IMAGE" >&2
+  exit 1
+fi
+
+# Update the symlink
+ln -nsf "$IMAGE" "$WALLPAPER_LINK"
+
+# Ensure swww-daemon is running
+if ! pgrep -x swww-daemon > /dev/null; then
+  setsid uwsm-app -- swww-daemon &
+  sleep 0.5
+fi
+
+# Set the wallpaper with a fade transition
+swww img "$WALLPAPER_LINK" \
+  --transition-type fade \
+  --transition-duration 1 \
+  --transition-fps 60
+
+notify-send "Wallpaper changed" "$(basename "$IMAGE")" -t 2000
