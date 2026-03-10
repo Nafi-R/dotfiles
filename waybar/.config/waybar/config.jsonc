@@ -15,8 +15,8 @@
   ],
   "modules-right": [
     "group/tray-expander",
-    "group/utilities",
     "group/stats",
+    "group/utilities",
     "clock"
   ],
   "wlr/taskbar": {
@@ -202,6 +202,26 @@
     "tooltip-format": "Playing: {title} - {artist}",
     "tooltip-format-paused": "Paused: {title} - {artist}"
   },
+  "custom/notifications": {
+    "tooltip": false,
+    "format": "{icon} ",
+    "format-icons": {
+      "notification": "󱅫",
+      "none": "󰂚",
+      "dnd-notification": "󰂛",
+      "dnd-none": "󰂛",
+      "inhibited-notification": "󱅫",
+      "inhibited-none": "󰂚",
+      "dnd-inhibited-notification": "󰂛",
+      "dnd-inhibited-none": "󰂛"
+    },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
+  },
   "group/player" : {
     "orientation": "horizontal",
     "modules": [
@@ -214,9 +234,10 @@
   "group/utilities" : {
     "orientation": "horizontal",
     "modules": [
-    "bluetooth",
-    "network",
-    "pulseaudio"
+      "bluetooth",
+      "network",
+      "pulseaudio",
+      "custom/notifications"
     ]
   },
   "memory": {

@@ -26,6 +26,7 @@
 @define-color base      #1e1e2e;
 @define-color mantle    #181825;
 @define-color crust     #11111b;
+@define-color white     #ffffff;
 
 * {
   background-color: transparent;
@@ -84,10 +85,10 @@ window#waybar {
   margin: 0 1px;
   min-width: 14px;
   background-color: transparent;
-  color: @overlay0;
+  color: @white;
   border-radius: 6px;
   transition: all 0.2s ease;
-  font-family: 'FiraCode Nerd Font';
+  font-family: 'Google Sans Flex';
   font-size: 11px;
 }
 
@@ -101,7 +102,7 @@ window#waybar {
 }
 
 #workspaces button.occupied {
-  color: @subtext0;
+  color: @white;
 }
 
 #workspaces button.active {
