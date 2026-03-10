@@ -74,10 +74,23 @@ install_pkg() {
     esac
 }
 
-# Some packages have different names across distros.
+install_aur_pkg() {
+    local pkg="$1"
+    if command -v yay >/dev/null 2>&1; then
+        yay -S --noconfirm "$pkg"
+    elif command -v paru >/dev/null 2>&1; then
+        paru -S --noconfirm "$pkg"
+    else
+        warning "No AUR helper found (yay/paru). Install '$pkg' manually from the AUR."
+        return 1
+    fi
+}
+
+# ---------- Package name mapping ----------
 # Map: logical name -> debian|arch|fedora
-# Use "__skip__" to handle a package separately.
+# Use "__skip__" when a package is not available for that distro.
 declare -A PKG_MAP=(
+    # Build essentials & CLI tools
     [curl]="curl|curl|curl"
     [git]="git|git|git"
     [gcc]="gcc|gcc|gcc"
@@ -89,6 +102,59 @@ declare -A PKG_MAP=(
     [fzf]="fzf|fzf|fzf"
     [neovim]="neovim|neovim|neovim"
     [unzip]="unzip|unzip|unzip"
+    [jq]="jq|jq|jq"
+
+    # Hyprland ecosystem
+    [hyprland]="hyprland|hyprland|hyprland"
+    [hyprlock]="hyprlock|hyprlock|hyprlock"
+    [hypridle]="hypridle|hypridle|hypridle"
+    [hyprpicker]="hyprpicker|hyprpicker|hyprpicker"
+    [xdg-desktop-portal-hyprland]="xdg-desktop-portal-hyprland|xdg-desktop-portal-hyprland|xdg-desktop-portal-hyprland"
+    [hyprsunset]="__skip__|hyprsunset|__skip__"
+
+    # Desktop environment
+    [waybar]="waybar|waybar|waybar"
+    [swww]="__skip__|swww|__skip__"
+    [mako]="mako-notifier|mako|mako"
+    [swaync]="__skip__|swaync|SwayNotificationCenter"
+    [swayosd]="swayosd|swayosd|__skip__"
+    [uwsm]="uwsm|uwsm|__skip__"
+    [polkit-gnome]="policykit-1-gnome|polkit-gnome|polkit-gnome"
+    [fcitx5]="fcitx5|fcitx5|fcitx5"
+
+    # Wayland utilities
+    [grim]="grim|grim|grim"
+    [slurp]="slurp|slurp|slurp"
+    [wl-clipboard]="wl-clipboard|wl-clipboard|wl-clipboard"
+    [satty]="__skip__|satty|__skip__"
+
+    # System utilities
+    [brightnessctl]="brightnessctl|brightnessctl|brightnessctl"
+    [upower]="upower|upower|upower"
+    [playerctl]="playerctl|playerctl|playerctl"
+    [pamixer]="pamixer|pamixer|pamixer"
+    [libnotify]="libnotify-bin|libnotify|libnotify"
+    [v4l-utils]="v4l-utils|v4l-utils|v4l-utils"
+    [ffmpeg]="ffmpeg|ffmpeg|ffmpeg"
+    [btop]="btop|btop|btop"
+    [gum]="__skip__|gum|gum"
+    [libxkbcommon]="libxkbcommon-dev|libxkbcommon|libxkbcommon"
+
+    # Desktop apps
+    [nautilus]="nautilus|nautilus|nautilus"
+    [gnome-calculator]="gnome-calculator|gnome-calculator|gnome-calculator"
+
+    # Terminal emulator
+    [ghostty]="__skip__|ghostty|__skip__"
+
+    # Screen recording
+    [gpu-screen-recorder]="__skip__|gpu-screen-recorder|__skip__"
+
+    # TUI apps (Arch-only)
+    [lazydocker]="__skip__|lazydocker|__skip__"
+    [impala]="__skip__|impala|__skip__"
+    [bluetui]="__skip__|bluetui|__skip__"
+    [wiremix]="__skip__|wiremix|__skip__"
 )
 
 resolve_pkg() {
@@ -106,8 +172,11 @@ resolve_pkg() {
     esac
 }
 
+# ---------- Install standard packages ----------
 install_dependencies() {
+    info "Installing standard dependencies..."
     local deps=(
+        # Build essentials & CLI tools
         curl
         git
         gcc
@@ -119,19 +188,107 @@ install_dependencies() {
         fzf
         neovim
         unzip
-        walker
-        opencode
+        jq
+
+        # Hyprland ecosystem
+        hyprland
+        hyprlock
+        hypridle
+        hyprpicker
+        xdg-desktop-portal-hyprland
+        hyprsunset
+
+        # Desktop environment
+        waybar
+        swww
+        mako
+        swaync
+        swayosd
+        uwsm
+        polkit-gnome
+        fcitx5
+
+        # Wayland utilities
+        grim
+        slurp
+        wl-clipboard
+        satty
+
+        # System utilities
+        brightnessctl
+        upower
+        playerctl
+        pamixer
+        libnotify
+        v4l-utils
+        ffmpeg
+        btop
+        gum
+        libxkbcommon
+
+        # Desktop apps
+        nautilus
+        gnome-calculator
+
+        # Terminal emulator
+        ghostty
+
+        # Screen recording
+        gpu-screen-recorder
+
+        # TUI apps
+        lazydocker
+        impala
+        bluetui
+        wiremix
     )
+
+    local skipped=()
 
     for dep in "${deps[@]}"; do
         local pkg
         pkg="$(resolve_pkg "$dep")"
         if [ "$pkg" = "__skip__" ]; then
+            skipped+=("$dep")
             continue
         fi
         info "Installing $dep ($pkg)..."
         if ! install_pkg "$pkg"; then
             warning "Failed to install $dep — you may need to install it manually."
+        fi
+    done
+
+    if [ ${#skipped[@]} -gt 0 ]; then
+        echo ""
+        warning "The following packages are not available in official $DISTRO repos:"
+        for s in "${skipped[@]}"; do
+            echo "  - $s"
+        done
+        echo ""
+        info "You may need to install them manually (e.g. from source, Flatpak, or a third-party repo)."
+    fi
+}
+
+# ---------- AUR-only packages (Arch) ----------
+install_aur_packages() {
+    if [ "$DISTRO" != "arch" ]; then
+        return
+    fi
+
+    info "Installing AUR packages..."
+    local aur_deps=(
+        walker
+        elephant
+        opencode
+        voxtype
+        xdg-terminal-exec
+        hyprland-preview-share-picker-git
+    )
+
+    for dep in "${aur_deps[@]}"; do
+        info "Installing $dep from AUR..."
+        if ! install_aur_pkg "$dep"; then
+            warning "Failed to install $dep from AUR."
         fi
     done
 }
@@ -156,14 +313,7 @@ https://brave-browser-apt-release.s3.brave.com/ stable main" \
             sudo apt install -y brave-browser
             ;;
         arch)
-            # brave-bin is in the AUR — needs an AUR helper
-            if command -v yay >/dev/null 2>&1; then
-                yay -S --noconfirm brave-bin
-            elif command -v paru >/dev/null 2>&1; then
-                paru -S --noconfirm brave-bin
-            else
-                warning "No AUR helper found (yay/paru). Install brave-bin manually from the AUR."
-            fi
+            install_aur_pkg brave-bin
             ;;
         fedora)
             sudo dnf install -y dnf-plugins-core
@@ -188,7 +338,7 @@ install_tpm() {
 # ---------- Stow dotfiles ----------
 stow_packages() {
     info "Symlinking dotfiles with stow..."
-    local packages=(git tmux nvim zsh hypr waybar discord)
+    local packages=(git tmux nvim zsh hypr waybar ghostty nafi discord)
 
     for pkg in "${packages[@]}"; do
         if [ -d "$DOTFILES_DIR/$pkg" ]; then
@@ -215,16 +365,75 @@ setup_zsh() {
     fi
 }
 
+# ---------- Summary of manual installs needed ----------
+print_manual_install_summary() {
+    if [ "$DISTRO" = "arch" ]; then
+        return
+    fi
+
+    echo ""
+    info "=== Manual installation needed ==="
+    echo ""
+    echo "The following tools are not in official $DISTRO repos and must be installed manually:"
+    echo ""
+    echo "  Required:"
+    echo "    - walker           (app launcher)        https://github.com/abenz1267/walker"
+    echo "    - elephant         (walker plugin)       https://github.com/abenz1267/elephant"
+    echo "    - opencode         (AI coding tool)      https://opencode.ai"
+    echo "    - xdg-terminal-exec                      https://github.com/Vladimir-csp/xdg-terminal-exec"
+    echo ""
+    echo "  Optional:"
+    echo "    - voxtype          (dictation)           https://github.com/meli-iern/voxtype"
+    echo "    - hyprland-preview-share-picker          https://github.com/mightymeld/hyprland-preview-share-picker"
+
+    if [ "$DISTRO" = "debian" ]; then
+        echo ""
+        echo "  Debian-specific missing packages (may need backports, Flatpak, or build from source):"
+        echo "    - swww             (wallpaper daemon)    https://github.com/LGFae/swww"
+        echo "    - swaync           (notification center) https://github.com/ErikReider/SwayNotificationCenter"
+        echo "    - hyprsunset       (color temperature)   https://github.com/hyprwm/hyprsunset"
+        echo "    - satty            (screenshot editor)   https://github.com/gabm/Satty"
+        echo "    - ghostty          (terminal emulator)   https://ghostty.org"
+        echo "    - gpu-screen-recorder                    https://github.com/dec05eba/gpu-screen-recorder"
+        echo "    - gum              (TUI tool)            https://github.com/charmbracelet/gum"
+        echo "    - lazydocker       (Docker TUI)          https://github.com/jesseduffield/lazydocker"
+        echo "    - impala           (WiFi TUI)            https://github.com/pythops/impala"
+        echo "    - bluetui          (Bluetooth TUI)       https://github.com/pythops/bluetui"
+        echo "    - wiremix          (audio mixer TUI)     https://github.com/mablin7/wiremix"
+    fi
+
+    if [ "$DISTRO" = "fedora" ]; then
+        echo ""
+        echo "  Fedora-specific missing packages (may need COPR or build from source):"
+        echo "    - swww             (wallpaper daemon)    https://github.com/LGFae/swww"
+        echo "    - swayosd          (on-screen display)   https://github.com/ErikReider/SwayOSD"
+        echo "    - uwsm             (session manager)     https://github.com/Vladimir-csp/uwsm"
+        echo "    - hyprsunset       (color temperature)   https://github.com/hyprwm/hyprsunset"
+        echo "    - satty            (screenshot editor)   https://github.com/gabm/Satty"
+        echo "    - ghostty          (terminal emulator)   https://ghostty.org"
+        echo "    - gpu-screen-recorder                    https://github.com/dec05eba/gpu-screen-recorder"
+        echo "    - lazydocker       (Docker TUI)          https://github.com/jesseduffield/lazydocker"
+        echo "    - impala           (WiFi TUI)            https://github.com/pythops/impala"
+        echo "    - bluetui          (Bluetooth TUI)       https://github.com/pythops/bluetui"
+        echo "    - wiremix          (audio mixer TUI)     https://github.com/mablin7/wiremix"
+    fi
+
+    echo ""
+}
+
 # ========== Main ==========
 main() {
     info "Installing Nafi's dotfiles..."
     detect_distro
     update_system
     install_dependencies
+    install_aur_packages
     install_brave
     install_tpm
     init_submodules
     setup_zsh
+    stow_packages
+    print_manual_install_summary
     info "Done! Restart your terminal or run 'exec zsh' to get started."
 }
 
