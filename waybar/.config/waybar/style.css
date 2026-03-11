@@ -156,6 +156,11 @@ window#waybar {
   color: @mauve;
 }
 
+#notifications {
+  padding: 4px 10px;
+  color: @mauve;
+}
+
 #memory {
   color: @peach;
   padding: 4px 10px;
