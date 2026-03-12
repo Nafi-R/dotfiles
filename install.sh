@@ -242,6 +242,7 @@ install_dependencies() {
         impala
         bluetui
         wiremix
+        opencode
     )
 
     local skipped=()
@@ -278,10 +279,7 @@ install_aur_packages() {
 
     info "Installing AUR packages..."
     local aur_deps=(
-        opencode
-        voxtype
         xdg-terminal-exec
-        hyprland-preview-share-picker-git
     )
 
     for dep in "${aur_deps[@]}"; do
@@ -379,9 +377,6 @@ print_manual_install_summary() {
     echo "    - opencode         (AI coding tool)      https://opencode.ai"
     echo "    - xdg-terminal-exec                      https://github.com/Vladimir-csp/xdg-terminal-exec"
     echo ""
-    echo "  Optional:"
-    echo "    - voxtype          (dictation)           https://github.com/meli-iern/voxtype"
-    echo "    - hyprland-preview-share-picker          https://github.com/mightymeld/hyprland-preview-share-picker"
 
     if [ "$DISTRO" = "debian" ]; then
         echo ""
