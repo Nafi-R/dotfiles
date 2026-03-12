@@ -1,0 +1,8 @@
+configuration {
+    disable-history: false;
+    sort: true;
+    sorting-method: "fzf";
+    show-icons: true;
+}
+
+@theme "catppuccin-mocha"

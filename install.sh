@@ -200,6 +200,7 @@ install_dependencies() {
 
         # Desktop environment
         waybar
+        rofi
         swww
         mako
         swaync
@@ -277,8 +278,6 @@ install_aur_packages() {
 
     info "Installing AUR packages..."
     local aur_deps=(
-        walker
-        elephant
         opencode
         voxtype
         xdg-terminal-exec
@@ -338,7 +337,7 @@ install_tpm() {
 # ---------- Stow dotfiles ----------
 stow_packages() {
     info "Symlinking dotfiles with stow..."
-    local packages=(git tmux nvim zsh hypr waybar ghostty nafi discord)
+    local packages=(git tmux nvim zsh hypr waybar ghostty nafi discord rofi swaync)
 
     for pkg in "${packages[@]}"; do
         if [ -d "$DOTFILES_DIR/$pkg" ]; then
@@ -377,8 +376,6 @@ print_manual_install_summary() {
     echo "The following tools are not in official $DISTRO repos and must be installed manually:"
     echo ""
     echo "  Required:"
-    echo "    - walker           (app launcher)        https://github.com/abenz1267/walker"
-    echo "    - elephant         (walker plugin)       https://github.com/abenz1267/elephant"
     echo "    - opencode         (AI coding tool)      https://opencode.ai"
     echo "    - xdg-terminal-exec                      https://github.com/Vladimir-csp/xdg-terminal-exec"
     echo ""

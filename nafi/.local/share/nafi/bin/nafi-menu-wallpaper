@@ -1,13 +1,44 @@
 #!/bin/bash
 
-# Open the wallpaper picker in Walker via the nafiWallpaper Elephant module.
+# Open the wallpaper picker using rofi with image thumbnails.
 
-if ! pgrep -x elephant > /dev/null; then
-  setsid uwsm-app -- elephant &
+wallpaper_dir="$HOME/Wallpapers"
+
+format_name() {
+  local filename="$1"
+  # Remove file extension
+  filename="${filename%.*}"
+  # Replace dashes and underscores with spaces
+  filename="${filename//[-_]/ }"
+  # Title-case each word
+  echo "$filename" | sed 's/\b\(.\)/\u\1/g'
+}
+
+entries=()
+paths=()
+
+while IFS= read -r image; do
+  filename="${image##*/}"
+  display_name=$(format_name "$filename")
+  entries+=("${display_name}\0icon\x1f${image}")
+  paths+=("$image")
+done < <(find "$wallpaper_dir" -type f \( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.gif' -o -name '*.bmp' -o -name '*.webp' \) 2>/dev/null | sort)
+
+if [[ ${#entries[@]} -eq 0 ]]; then
+  notify-send "Wallpaper Picker" "No wallpapers found in $wallpaper_dir"
+  exit 1
 fi
 
-if ! pgrep -f "walker --gapplication-service" > /dev/null; then
-  setsid uwsm-app -- walker --gapplication-service &
-fi
+selected=$(printf '%b\n' "${entries[@]}" | rofi -dmenu -p 'Wallpaper' -show-icons -theme-str 'window { width: 644px; }' 2>/dev/null)
 
-exec walker --width 644 --maxheight 300 --minheight 300 -m menus:nafiWallpaper
+[[ -z "$selected" ]] && exit 0
+
+# Match the selected display name back to the image path
+for i in "${!paths[@]}"; do
+  image="${paths[$i]}"
+  filename="${image##*/}"
+  display_name=$(format_name "$filename")
+  if [[ "$display_name" == "$selected" ]]; then
+    exec nafi-wallpaper-set "$image"
+  fi
+done

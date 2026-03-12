@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Display a system power menu using walker dmenu.
+# Display a system power menu using rofi dmenu.
 
 menu() {
   local prompt="$1"
   local options="$2"
 
-  echo -e "$options" | nafi-launch-walker --dmenu --width 295 --minheight 1 --maxheight 630 -p "$prompt" 2>/dev/null
+  echo -e "$options" | rofi -dmenu -p "$prompt" -theme-str 'window { width: 295px; }' 2>/dev/null
 }
 
 options="  Lock"
