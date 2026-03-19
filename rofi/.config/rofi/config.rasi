@@ -3,6 +3,7 @@ configuration {
     sort: true;
     sorting-method: "fzf";
     show-icons: true;
+    display-drun: "";
 }
 
 @theme "catppuccin-mocha"
