@@ -17,6 +17,8 @@ ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[blue]%})"
 source "${HOME}/.config/nafi/utils"
 export PATH="/opt/nvim-linux-x86_64/bin:$PATH"
 export PATH="${HOME}/.local/share/nafi/bin:$PATH"
+export PATH="${HOME}/.cargo/env:$PATH"
+export PATH="${HOME}/Applications/:$PATH"
 export EDITOR="nvim"
 
 bindkey -s '^g' 'goto\n'
