@@ -57,8 +57,8 @@ hl.bind("SUPER + SHIFT + TAB", hl.dsp.focus({ workspace = "e-1" }))
 hl.bind("SUPER + CTRL + TAB", hl.dsp.focus({ workspace = "previous" }))
 
 -- Move workspaces to other monitors
-hl.bind("SUPER + SHIFT + ALT + LEFT", hl.dsp.window.move({ monitor = "+1" }))
-hl.bind("SUPER + SHIFT + ALT + RIGHT", hl.dsp.window.move({ monitor = "-1" }))
+hl.bind("SUPER + SHIFT + ALT + LEFT", hl.dsp.workspace.move({ monitor = "+1" }))
+hl.bind("SUPER + SHIFT + ALT + RIGHT", hl.dsp.workspace.move({ monitor = "-1" }))
 
 -- Swap active window
 hl.bind("SUPER + SHIFT + LEFT", function() hl.dispatch("swapwindow", "l") end)
