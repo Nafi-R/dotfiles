@@ -18,8 +18,18 @@ source "${HOME}/.config/nafi/utils"
 export PATH="/opt/nvim-linux-x86_64/bin:$PATH"
 export PATH="${HOME}/.local/share/nafi/bin:$PATH"
 export PATH="${HOME}/.cargo/env:$PATH"
+export PATH="${HOME}/.cache/.bun/bin:$PATH"
 export PATH="${HOME}/Applications/:$PATH"
 export EDITOR="nvim"
 
 bindkey -s '^g' 'goto\n'
 bindkey -s '^s' 'sessionizer\n'
+
+
+# opencode
+export PATH=/home/nafi/.opencode/bin:$PATH
+source ~/.secrets
+
+ollama() {
+ docker exec -it ollama ollama $@
+}

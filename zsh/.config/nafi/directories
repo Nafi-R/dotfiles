@@ -4,6 +4,7 @@
 # Use descriptive, lowercase array names
 parent_roots=(
     "${HOME}/Work"
+    "${HOME}/Repos"
     "${HOME}/.config"
 )
 
