@@ -3,9 +3,10 @@
 # --- 1. Define Root Directories ---
 # Use descriptive, lowercase array names
 parent_roots=(
-    "${HOME}/Work"
+    "${HOME}/Projects/"
     "${HOME}/Repos"
     "${HOME}/.config"
+    "/mnt/games/Containers/"
 )
 
 child_roots=(

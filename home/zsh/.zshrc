@@ -33,3 +33,8 @@ source ~/.secrets
 ollama() {
  docker exec -it ollama ollama $@
 }
+
+# Prime Agent (npm global binaries)
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+. "$HOME/.local/share/../bin/env"

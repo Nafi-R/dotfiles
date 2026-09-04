@@ -1,110 +1,126 @@
-#!/bin/bash
-
-set -e
+#!/usr/bin/env bash
+#
+# Nafi's dotfiles installer
+# -------------------------
+# A modular, per-app dotfiles installer.
+#
+# Layout (one app = one line in the registry below):
+#   config/           -> ~/.config     (hypr, waybar, ghostty, nvim, ...)
+#   home/             -> ~             (git/.gitconfig, tmux/.tmux.conf, zsh/.zshrc)
+#   local/            -> ~/.local     (local/share/nafi -> ~/.local/share/nafi)
+#   system/           -> /            (sddm theme, needs sudo)
+#
+# Every file lives under a VISIBLE folder (config/, home/, local/, system/),
+# so the repo is no longer a sea of hidden ".config"/".local" dirs. Each app
+# is still symbolically linked into place, and you choose per machine which
+# apps get linked (interactive checklist, CLI args, or a saved profile).
+#
+# Usage:
+#   ./install.sh                  interactive checklist + link + setup
+#   ./install.sh --all            link/setup every app
+#   ./install.sh hypr waybar      link just those apps (non-interactive)
+#   ./install.sh --deps hypr      also install distro packages for hypr
+#   ./install.sh --list           list available apps and exit
+#   ./install.sh --edit           force the interactive editor
+#   ./install.sh --no-deps        never install packages
+set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# ---------- Output helpers ----------
-info()    { echo -e "\033[1;34m[INFO]\033[0m $1"; }
-warning() { echo -e "\033[1;33m[WARN]\033[0m $1"; }
-error()   { echo -e "\033[1;31m[ERROR]\033[0m $1" >&2; exit 1; }
+# ---------------------------------------------------------------------------
+# Output helpers
+# ---------------------------------------------------------------------------
+info()    { echo -e "\033[1;34m[INFO]\033[0m  $*"; }
+warning() { echo -e "\033[1;33m[WARN]\033[0m  $*"; }
+error()   { echo -e "\033[1;31m[ERROR]\033[0m $*" >&2; exit 1; }
 
-# ---------- Ask user for distro family ----------
+# ---------------------------------------------------------------------------
+# Registry: every app this repo knows about
+# ---------------------------------------------------------------------------
+# APP_LINKS format: "<repo-src>|<target-path>" (repeat, space-separated).
+#   * repo-src   -> path relative to $DOTFILES_DIR
+#   * target-path-> path relative to $HOME, or absolute (e.g. /usr/...)
+# The installer symlinks  <repo>/<src>  ->  <target>  with ln -sfn.
+
+declare -A APP_DESC
+declare -A APP_LINKS
+declare -A APP_DEPS   # logical package names, resolved via PKG_MAP
+
+register_app() {
+  local name="$1" desc="$2" links="$3" deps="$4"
+  APP_DESC[$name]="$desc"
+  APP_LINKS[$name]="$links"
+  APP_DEPS[$name]="$deps"
+}
+
+register_app git      "Git configuration"                  "home/git/.gitconfig|.gitconfig"                       "git"
+register_app tmux     "Tmux configuration"                 "home/tmux/.tmux.conf|.tmux.conf"                      "tmux"
+register_app zsh      "Zsh shell + nafi helpers"           "home/zsh/.zshrc|.zshrc config/nafi|.config/nafi"     "zsh"
+register_app nvim     "Neovim config (submodule)"          "config/nvim|.config/nvim"                            "curl git make gcc neovim ripgrep fzf unzip jq"
+register_app hypr     "Hyprland window manager ecosystem"  "config/hypr|.config/hypr"                            "hyprland hyprlock hypridle hyprpicker xdg-desktop-portal-hyprland hyprsunset swww swayosd uwsm polkit-gnome fcitx5 grim slurp wl-clipboard satty brightnessctl upower playerctl pamixer libnotify libxkbcommon gum"
+register_app waybar   "Waybar bar"                         "config/waybar|.config/waybar"                        "waybar"
+register_app ghostty  "Ghostty terminal"                   "config/ghostty|.config/ghostty"                      "ghostty"
+register_app rofi     "Rofi launcher"                      "config/rofi|.config/rofi"                            "rofi"
+register_app swaync   "Sway notification center"           "config/swaync|.config/swaync"                        "swaync"
+register_app discord  "Discord settings"                   "config/discord|.config/discord"                      "discord"
+register_app nafi     "Nafi CLI helper scripts"            "local/share/nafi|.local/share/nafi"                  "playerctl pamixer brightnessctl upower libnotify grim slurp wl-clipboard"
+register_app sddm     "SDDM login theme (system-wide)"     "system/sddm/usr/share/sddm/themes/nafi|/usr/share/sddm/themes/nafi" "sddm"
+
+# Stable, human-friendly ordering for prompts
+ALL_APPS=(git tmux zsh nvim hypr waybar ghostty rofi swaync discord nafi sddm)
+
+# ---------------------------------------------------------------------------
+# Distro detection + package resolution
+# ---------------------------------------------------------------------------
+DISTRO=""
+
 ask_distro() {
-    local detected="$1"
-    warning "Could not automatically determine distro family for '$detected'."
-    echo ""
-    echo "Which distro family is this system based on?"
-    echo "  1) Arch   (pacman)  — Arch, Manjaro, EndeavourOS, CachyOS, etc."
-    echo "  2) Debian (apt)     — Debian, Ubuntu, Mint, Pop!_OS, etc."
-    echo "  3) Fedora (dnf)     — Fedora, Nobara, etc."
-    echo ""
-    while true; do
-        read -rp "Enter choice [1-3]: " choice
-        case "$choice" in
-            1) DISTRO="arch";   return ;;
-            2) DISTRO="debian"; return ;;
-            3) DISTRO="fedora"; return ;;
-            *) echo "Invalid choice. Please enter 1, 2, or 3." ;;
-        esac
-    done
+  local detected="$1"
+  warning "Could not automatically determine distro family for '$detected'."
+  echo "Which distro family is this system based on?"
+  echo "  1) Arch   (pacman)  — Arch, Manjaro, EndeavourOS, CachyOS, etc."
+  echo "  2) Debian (apt)     — Debian, Ubuntu, Mint, Pop!_OS, etc."
+  echo "  3) Fedora (dnf)     — Fedora, Nobara, etc."
+  while true; do
+    read -rp "Enter choice [1-3]: " choice
+    case "$choice" in
+      1) DISTRO="arch";   return ;;
+      2) DISTRO="debian"; return ;;
+      3) DISTRO="fedora"; return ;;
+      *) echo "Invalid choice. Please enter 1, 2, or 3." ;;
+    esac
+  done
 }
 
-# ---------- Detect distro family ----------
 detect_distro() {
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        case "$ID" in
-            ubuntu|debian|linuxmint|pop) DISTRO="debian" ;;
-            arch|manjaro|endeavouros)     DISTRO="arch" ;;
-            fedora)                       DISTRO="fedora" ;;
-            *)
-                # Fallback: check ID_LIKE
-                case "$ID_LIKE" in
-                    *debian*|*ubuntu*) DISTRO="debian" ;;
-                    *arch*)            DISTRO="arch" ;;
-                    *fedora*|*rhel*)   DISTRO="fedora" ;;
-                    *)                 ask_distro "$ID" ;;
-                esac
-                ;;
-        esac
-    else
-        ask_distro "unknown"
-    fi
-    info "Detected distro family: $DISTRO"
+  [ -f /etc/os-release ] || { ask_distro "unknown"; return; }
+  . /etc/os-release
+  case "$ID" in
+    ubuntu|debian|linuxmint|pop) DISTRO="debian" ;;
+    arch|manjaro|endeavouros)     DISTRO="arch" ;;
+    fedora)                       DISTRO="fedora" ;;
+    *)
+      case "$ID_LIKE" in
+        *debian*|*ubuntu*) DISTRO="debian" ;;
+        *arch*)            DISTRO="arch" ;;
+        *fedora*|*rhel*)   DISTRO="fedora" ;;
+        *)                 ask_distro "$ID" ;;
+      esac
+      ;;
+  esac
+  info "Detected distro family: $DISTRO"
 }
 
-# ---------- System update ----------
-update_system() {
-    info "Updating system packages..."
-    case "$DISTRO" in
-        debian) sudo apt update && sudo apt upgrade -y ;;
-        arch)   sudo pacman -Syu --noconfirm ;;
-        fedora) sudo dnf upgrade -y ;;
-    esac
-}
-
-# ---------- Package installation ----------
-install_pkg() {
-    local pkg="$1"
-    case "$DISTRO" in
-        debian) sudo apt install -y "$pkg" ;;
-        arch)   sudo pacman -S --noconfirm --needed "$pkg" ;;
-        fedora) sudo dnf install -y "$pkg" ;;
-    esac
-}
-
-install_aur_pkg() {
-    local pkg="$1"
-    if command -v yay >/dev/null 2>&1; then
-        yay -S --noconfirm "$pkg"
-    elif command -v paru >/dev/null 2>&1; then
-        paru -S --noconfirm "$pkg"
-    else
-        warning "No AUR helper found (yay/paru). Install '$pkg' manually from the AUR."
-        return 1
-    fi
-}
-
-# ---------- Package name mapping ----------
-# Map: logical name -> debian|arch|fedora
-# Use "__skip__" when a package is not available for that distro.
+# Package name mapping: logical name -> debian|arch|fedora ("__skip__" = n/a)
 declare -A PKG_MAP=(
-    # Build essentials & CLI tools
-    [curl]="curl|curl|curl"
-    [git]="git|git|git"
-    [gcc]="gcc|gcc|gcc"
-    [make]="make|make|make"
-    [vim]="vim|vim|vim"
-    [tmux]="tmux|tmux|tmux"
-    [stow]="stow|stow|stow"
-    [ripgrep]="ripgrep|ripgrep|ripgrep"
-    [fzf]="fzf|fzf|fzf"
-    [neovim]="neovim|neovim|neovim"
-    [unzip]="unzip|unzip|unzip"
-    [jq]="jq|jq|jq"
+    [curl]="curl|curl|curl"        [git]="git|git|git"
+    [gcc]="gcc|gcc|gcc"            [make]="make|make|make"
+    [vim]="vim|vim|vim"            [tmux]="tmux|tmux|tmux"
+    [stow]="stow|stow|stow"        [ripgrep]="ripgrep|ripgrep|ripgrep"
+    [fzf]="fzf|fzf|fzf"            [neovim]="neovim|neovim|neovim"
+    [unzip]="unzip|unzip|unzip"    [jq]="jq|jq|jq"
+    [zsh]="zsh|zsh|zsh"            [rofi]="rofi|rofi|rofi"
 
-    # Hyprland ecosystem
     [hyprland]="hyprland|hyprland|hyprland"
     [hyprlock]="hyprlock|hyprlock|hyprlock"
     [hypridle]="hypridle|hypridle|hypridle"
@@ -112,7 +128,6 @@ declare -A PKG_MAP=(
     [xdg-desktop-portal-hyprland]="xdg-desktop-portal-hyprland|xdg-desktop-portal-hyprland|xdg-desktop-portal-hyprland"
     [hyprsunset]="__skip__|hyprsunset|__skip__"
 
-    # Desktop environment
     [waybar]="waybar|waybar|waybar"
     [swww]="__skip__|swww|__skip__"
     [mako]="mako-notifier|mako|mako"
@@ -122,35 +137,25 @@ declare -A PKG_MAP=(
     [polkit-gnome]="policykit-1-gnome|polkit-gnome|polkit-gnome"
     [fcitx5]="fcitx5|fcitx5|fcitx5"
 
-    # Wayland utilities
-    [grim]="grim|grim|grim"
-    [slurp]="slurp|slurp|slurp"
+    [grim]="grim|grim|grim"        [slurp]="slurp|slurp|slurp"
     [wl-clipboard]="wl-clipboard|wl-clipboard|wl-clipboard"
     [satty]="__skip__|satty|__skip__"
 
-    # System utilities
     [brightnessctl]="brightnessctl|brightnessctl|brightnessctl"
-    [upower]="upower|upower|upower"
-    [playerctl]="playerctl|playerctl|playerctl"
+    [upower]="upower|upower|upower"  [playerctl]="playerctl|playerctl|playerctl"
     [pamixer]="pamixer|pamixer|pamixer"
     [libnotify]="libnotify-bin|libnotify|libnotify"
-    [v4l-utils]="v4l-utils|v4l-utils|v4l-utils"
-    [ffmpeg]="ffmpeg|ffmpeg|ffmpeg"
-    [btop]="btop|btop|btop"
-    [gum]="__skip__|gum|gum"
     [libxkbcommon]="libxkbcommon-dev|libxkbcommon|libxkbcommon"
+    [gum]="__skip__|gum|gum"
+    [ffmpeg]="ffmpeg|ffmpeg|ffmpeg" [btop]="btop|btop|btop"
 
-    # Desktop apps
     [nautilus]="nautilus|nautilus|nautilus"
     [gnome-calculator]="gnome-calculator|gnome-calculator|gnome-calculator"
-
-    # Terminal emulator
     [ghostty]="__skip__|ghostty|__skip__"
-
-    # Screen recording
     [gpu-screen-recorder]="__skip__|gpu-screen-recorder|__skip__"
+    [discord]="discord|discord|discord"
+    [sddm]="sddm|sddm|sddm"
 
-    # TUI apps (Arch-only)
     [lazydocker]="__skip__|lazydocker|__skip__"
     [impala]="__skip__|impala|__skip__"
     [bluetui]="__skip__|bluetui|__skip__"
@@ -158,275 +163,269 @@ declare -A PKG_MAP=(
 )
 
 resolve_pkg() {
-    local key="$1"
-    local entry="${PKG_MAP[$key]}"
-    if [ -z "$entry" ]; then
-        # No mapping; use the key as-is
-        echo "$key"
-        return
-    fi
+  local key="$1" entry="${PKG_MAP[$key]:-}"
+  if [ -n "$entry" ]; then
     case "$DISTRO" in
-        debian) echo "$entry" | cut -d'|' -f1 ;;
-        arch)   echo "$entry" | cut -d'|' -f2 ;;
-        fedora) echo "$entry" | cut -d'|' -f3 ;;
+      debian) echo "$entry" | cut -d'|' -f1 ;;
+      arch)   echo "$entry" | cut -d'|' -f2 ;;
+      fedora) echo "$entry" | cut -d'|' -f3 ;;
     esac
+    return
+  fi
+  echo "$key"
 }
 
-# ---------- Install standard packages ----------
-install_dependencies() {
-    info "Installing standard dependencies..."
-    local deps=(
-        # Build essentials & CLI tools
-        curl
-        git
-        gcc
-        make
-        vim
-        tmux
-        stow
-        ripgrep
-        fzf
-        neovim
-        unzip
-        jq
+install_pkg() {
+  local pkg="$1"
+  case "$DISTRO" in
+    debian) sudo apt install -y "$pkg" ;;
+    arch)   sudo pacman -S --noconfirm --needed "$pkg" ;;
+    fedora) sudo dnf install -y "$pkg" ;;
+  esac
+}
 
-        # Hyprland ecosystem
-        hyprland
-        hyprlock
-        hypridle
-        hyprpicker
-        xdg-desktop-portal-hyprland
-        hyprsunset
+# ---------------------------------------------------------------------------
+# Per-machine selection
+# ---------------------------------------------------------------------------
+PROFILE_DIR="$DOTFILES_DIR/profiles"
+PROFILE_FILE="$PROFILE_DIR/$(hostname)"
+SELECTED_APPS=()
 
-        # Desktop environment
-        waybar
-        rofi
-        swww
-        mako
-        swaync
-        swayosd
-        uwsm
-        polkit-gnome
-        fcitx5
+usage() { sed -n '4,18p' "$0"; exit "${1:-0}"; }
 
-        # Wayland utilities
-        grim
-        slurp
-        wl-clipboard
-        satty
+list_apps() {
+  echo "Available apps:"
+  for a in "${ALL_APPS[@]}"; do
+    printf '  %-10s %s\n' "$a" "${APP_DESC[$a]}"
+  done
+}
 
-        # System utilities
-        brightnessctl
-        upower
-        playerctl
-        pamixer
-        libnotify
-        v4l-utils
-        ffmpeg
-        btop
-        gum
-        libxkbcommon
+load_profile() {
+  [ -f "$PROFILE_FILE" ] || return 1
+  local line
+  while IFS= read -r line; do
+    [ -n "$line" ] && SELECTED_APPS+=("$line")
+  done < "$PROFILE_FILE"
+  return 0
+}
 
-        # Desktop apps
-        nautilus
-        gnome-calculator
+save_profile() {
+  mkdir -p "$PROFILE_DIR"
+  : > "$PROFILE_FILE"
+  local a
+  for a in "${SELECTED_APPS[@]}"; do echo "$a"; done > "$PROFILE_FILE"
+  info "Saved machine profile for '$(hostname)' -> profiles/$(hostname)"
+}
 
-        # Terminal emulator
-        ghostty
+normalize_apps() {
+  local app out=()
+  for app in "$@"; do
+    case " ${ALL_APPS[*]} " in
+      *" $app "*) out+=("$app") ;;
+      *) warning "Unknown app '$app' — ignoring (see --list)." ;;
+    esac
+  done
+  SELECTED_APPS=("${out[@]}")
+}
 
-        # Screen recording
-        gpu-screen-recorder
+toggle() {
+  local -n _arr="$1"; local val="$2" i
+  for i in "${!_arr[@]}"; do
+    [ "${_arr[$i]}" = "$val" ] && { unset "_arr[$i]"; local -a tmp=("${_arr[@]}"); _arr=("${tmp[@]}"); return; }
+  done
+  _arr+=("$val")
+}
 
-        # TUI apps
-        lazydocker
-        impala
-        bluetui
-        wiremix
-        opencode
-    )
-
-    local skipped=()
-
-    for dep in "${deps[@]}"; do
-        local pkg
-        pkg="$(resolve_pkg "$dep")"
-        if [ "$pkg" = "__skip__" ]; then
-            skipped+=("$dep")
-            continue
-        fi
-        info "Installing $dep ($pkg)..."
-        if ! install_pkg "$pkg"; then
-            warning "Failed to install $dep — you may need to install it manually."
-        fi
+select_apps_interactive() {
+  local -a chosen=("${SELECTED_APPS[@]}")
+  local names=("${ALL_APPS[@]}")
+  local choice tok idx i
+  echo
+  echo "Which apps should THIS machine get? (toggle by number)"
+  echo "  [a] all   [n] none     <enter> to finish"
+  while true; do
+    echo "----------------------------------------"
+    for i in "${!names[@]}"; do
+      printf '  [%2d] %-10s [%s]  %s\n' $((i+1)) "${names[$i]}" \
+        "$([[ " ${chosen[*]} " == *" ${names[$i]} "* ]] && echo x || echo ' ')" \
+        "${APP_DESC[${names[$i]}]}"
     done
-
-    if [ ${#skipped[@]} -gt 0 ]; then
-        echo ""
-        warning "The following packages are not available in official $DISTRO repos:"
-        for s in "${skipped[@]}"; do
-            echo "  - $s"
+    echo "----------------------------------------"
+    read -rp "> " choice
+    [ -z "$choice" ] && [ ${#chosen[@]} -gt 0 ] && break
+    case "$choice" in
+      a|A) chosen=("${names[@]}") ;;
+      n|N) chosen=() ;;
+      *)
+        for tok in $(echo "$choice" | tr ',' ' '); do
+          if [[ "$tok" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+            for ((i=BASH_REMATCH[1]; i<=BASH_REMATCH[2]; i++)); do
+              idx=$((i-1)); [ "$idx" -ge 0 ] && [ "$idx" -lt ${#names[@]} ] && toggle chosen "${names[$idx]}"
+            done
+          elif [[ "$tok" =~ ^[0-9]+$ ]]; then
+            idx=$((tok-1)); [ "$idx" -ge 0 ] && [ "$idx" -lt ${#names[@]} ] && toggle chosen "${names[$idx]}"
+          fi
         done
-        echo ""
-        info "You may need to install them manually (e.g. from source, Flatpak, or a third-party repo)."
-    fi
-}
-
-# ---------- AUR-only packages (Arch) ----------
-install_aur_packages() {
-    if [ "$DISTRO" != "arch" ]; then
-        return
-    fi
-
-    info "Installing AUR packages..."
-    local aur_deps=(
-        xdg-terminal-exec
-    )
-
-    for dep in "${aur_deps[@]}"; do
-        info "Installing $dep from AUR..."
-        if ! install_aur_pkg "$dep"; then
-            warning "Failed to install $dep from AUR."
-        fi
-    done
-}
-
-# ---------- Brave browser ----------
-install_brave() {
-    if command -v brave-browser >/dev/null 2>&1 || command -v brave >/dev/null 2>&1; then
-        info "Brave browser is already installed."
-        return
-    fi
-
-    info "Installing Brave browser..."
-    case "$DISTRO" in
-        debian)
-            sudo apt install -y curl
-            sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
-                https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
-            echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] \
-https://brave-browser-apt-release.s3.brave.com/ stable main" \
-                | sudo tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
-            sudo apt update
-            sudo apt install -y brave-browser
-            ;;
-        arch)
-            install_aur_pkg brave-bin
-            ;;
-        fedora)
-            sudo dnf install -y dnf-plugins-core
-            sudo dnf config-manager --add-repo \
-                https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-            sudo rpm --import https://brave-browser-rpm-release.s3.brave.com/brave-core.asc
-            sudo dnf install -y brave-browser
-            ;;
+        ;;
     esac
+  done
+  SELECTED_APPS=("${chosen[@]}")
 }
 
-# ---------- TPM (tmux plugin manager) ----------
-install_tpm() {
-    if [ -d "$HOME/.tmux/plugins/tpm" ]; then
-        info "TPM is already installed."
-    else
-        info "Installing tmux plugin manager (TPM)..."
-        git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-    fi
+# ---------------------------------------------------------------------------
+# Linking
+# ---------------------------------------------------------------------------
+# Symlink one repo path to a target (replacing stale links from older layouts).
+link_one() {
+  local src="$1" tgt="$2"
+  local src_abs="$DOTFILES_DIR/$src" tgt_abs tgt_dir use_sudo=""
+  if [[ "$tgt" == /* ]]; then tgt_abs="$tgt"; use_sudo="sudo"; else tgt_abs="$HOME/$tgt"; fi
+
+  # Never clobber a real file/dir the user owns (only replace our own symlinks)
+  if [ -e "$tgt_abs" ] && [ ! -L "$tgt_abs" ]; then
+    warning "Skip $src -> $tgt_abs (a real file/dir exists). Remove it manually to adopt this app."
+    return
+  fi
+
+  tgt_dir="$(dirname "$tgt_abs")"
+  if [ -n "$use_sudo" ]; then
+    sudo mkdir -p "$tgt_dir"
+    sudo rm -f "$tgt_abs"
+    sudo ln -sfn "$src_abs" "$tgt_abs"
+  else
+    mkdir -p "$tgt_dir"
+    rm -f "$tgt_abs"
+    ln -sfn "$src_abs" "$tgt_abs"
+  fi
+  info "Linked: ${tgt_abs#$HOME/} -> $src"
 }
 
-# ---------- Stow dotfiles ----------
-stow_packages() {
-    info "Symlinking dotfiles with stow..."
-    local packages=(git tmux nvim zsh hypr waybar ghostty nafi discord rofi swaync)
+link_app() {
+  local app="$1"
+  local links="${APP_LINKS[$app]:-}"
+  local spec src tgt
+  [ -n "$links" ] || { warning "No link rules for '$app'."; return 1; }
+  for spec in $links; do
+    IFS='|' read -r src tgt <<<"$spec"
+    link_one "$src" "$tgt"
+  done
+}
 
-    for pkg in "${packages[@]}"; do
-        if [ -d "$DOTFILES_DIR/$pkg" ]; then
-            info "Stowing $pkg..."
-            stow -d "$DOTFILES_DIR" -t "$HOME" --restow "$pkg" || \
-                warning "Failed to stow $pkg — resolve conflicts manually."
-        fi
+link_all() {
+  local a
+  for a in "${SELECTED_APPS[@]}"; do link_app "$a"; done
+}
+
+# ---------------------------------------------------------------------------
+# Optional per-app distro package install
+# ---------------------------------------------------------------------------
+install_deps() {
+  [ "$DO_DEPS" -eq 1 ] || return 0
+  info "Installing distro packages for your selected apps..."
+  local a dep pkg
+  for a in "${SELECTED_APPS[@]}"; do
+    for dep in ${APP_DEPS[$a]:-}; do
+      pkg="$(resolve_pkg "$dep")"
+      if [ "$pkg" = "__skip__" ]; then
+        info "  $dep: not in $DISTRO official repos — skip/install manually."
+        continue
+      fi
+      info "  installing $dep ($pkg)"
+      install_pkg "$pkg" || warning "  failed to install $dep"
     done
+  done
 }
 
-# ---------- Git submodules (nvim config) ----------
+# ---------------------------------------------------------------------------
+# Submodule + per-app setup hooks
+# ---------------------------------------------------------------------------
 init_submodules() {
-    info "Initializing git submodules..."
-    git -C "$DOTFILES_DIR" submodule update --init --recursive
+  if [ -f "$DOTFILES_DIR/.gitmodules" ]; then
+    info "Initializing git submodules (nvim config)..."
+    git -C "$DOTFILES_DIR" submodule update --init --recursive || warning "submodule init failed"
+  fi
 }
 
-# ---------- Zsh setup ----------
 setup_zsh() {
-    if [ -x "$DOTFILES_DIR/zsh/install.sh" ]; then
-        info "Running zsh setup..."
-        bash "$DOTFILES_DIR/zsh/install.sh"
-    else
-        warning "zsh/install.sh not found or not executable — skipping zsh setup."
-    fi
+  if [ -x "$DOTFILES_DIR/scripts/zsh.sh" ]; then
+    info "Running zsh setup (oh-my-zsh, plugins, default shell)..."
+    bash "$DOTFILES_DIR/scripts/zsh.sh"
+  fi
 }
 
-# ---------- Summary of manual installs needed ----------
-print_manual_install_summary() {
-    if [ "$DISTRO" = "arch" ]; then
-        return
-    fi
-
-    echo ""
-    info "=== Manual installation needed ==="
-    echo ""
-    echo "The following tools are not in official $DISTRO repos and must be installed manually:"
-    echo ""
-    echo "  Required:"
-    echo "    - opencode         (AI coding tool)      https://opencode.ai"
-    echo "    - xdg-terminal-exec                      https://github.com/Vladimir-csp/xdg-terminal-exec"
-    echo ""
-
-    if [ "$DISTRO" = "debian" ]; then
-        echo ""
-        echo "  Debian-specific missing packages (may need backports, Flatpak, or build from source):"
-        echo "    - swww             (wallpaper daemon)    https://github.com/LGFae/swww"
-        echo "    - swaync           (notification center) https://github.com/ErikReider/SwayNotificationCenter"
-        echo "    - hyprsunset       (color temperature)   https://github.com/hyprwm/hyprsunset"
-        echo "    - satty            (screenshot editor)   https://github.com/gabm/Satty"
-        echo "    - ghostty          (terminal emulator)   https://ghostty.org"
-        echo "    - gpu-screen-recorder                    https://github.com/dec05eba/gpu-screen-recorder"
-        echo "    - gum              (TUI tool)            https://github.com/charmbracelet/gum"
-        echo "    - lazydocker       (Docker TUI)          https://github.com/jesseduffield/lazydocker"
-        echo "    - impala           (WiFi TUI)            https://github.com/pythops/impala"
-        echo "    - bluetui          (Bluetooth TUI)       https://github.com/pythops/bluetui"
-        echo "    - wiremix          (audio mixer TUI)     https://github.com/mablin7/wiremix"
-    fi
-
-    if [ "$DISTRO" = "fedora" ]; then
-        echo ""
-        echo "  Fedora-specific missing packages (may need COPR or build from source):"
-        echo "    - swww             (wallpaper daemon)    https://github.com/LGFae/swww"
-        echo "    - swayosd          (on-screen display)   https://github.com/ErikReider/SwayOSD"
-        echo "    - uwsm             (session manager)     https://github.com/Vladimir-csp/uwsm"
-        echo "    - hyprsunset       (color temperature)   https://github.com/hyprwm/hyprsunset"
-        echo "    - satty            (screenshot editor)   https://github.com/gabm/Satty"
-        echo "    - ghostty          (terminal emulator)   https://ghostty.org"
-        echo "    - gpu-screen-recorder                    https://github.com/dec05eba/gpu-screen-recorder"
-        echo "    - lazydocker       (Docker TUI)          https://github.com/jesseduffield/lazydocker"
-        echo "    - impala           (WiFi TUI)            https://github.com/pythops/impala"
-        echo "    - bluetui          (Bluetooth TUI)       https://github.com/pythops/bluetui"
-        echo "    - wiremix          (audio mixer TUI)     https://github.com/mablin7/wiremix"
-    fi
-
-    echo ""
+setup_tmux() {
+  if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+    info "Installing tmux plugin manager (TPM)..."
+    mkdir -p "$HOME/.tmux/plugins"
+    git clone --depth 1 https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm" \
+      || warning "Could not clone TPM — install manually."
+  else
+    info "TPM already installed."
+  fi
 }
 
-# ========== Main ==========
+setup_app() {
+  case "$1" in
+    zsh)  setup_zsh ;;
+    tmux) setup_tmux ;;
+  esac
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 main() {
-    info "Installing Nafi's dotfiles..."
-    detect_distro
-    update_system
-    install_dependencies
-    install_aur_packages
-    install_brave
-    install_tpm
-    init_submodules
-    setup_zsh
-    stow_packages
-    print_manual_install_summary
-    info "Done! Restart your terminal or run 'exec zsh' to get started."
+  DO_DEPS=0
+  local edit=0 all_mode=0 list_mode=0 positional=()
+  for arg in "$@"; do
+    case "$arg" in
+      --all)      all_mode=1 ;;
+      --list)     list_mode=1 ;;
+      --deps)     DO_DEPS=1 ;;
+      --no-deps)  DO_DEPS=0 ;;
+      --edit)     edit=1 ;;
+      -h|--help)  usage 0 ;;
+      --*)        warning "Unknown option '$arg'"; usage 1 ;;
+      *)          positional+=("$arg") ;;
+    esac
+  done
+
+  [ "$list_mode" -eq 1 ] && { list_apps; exit 0; }
+
+  detect_distro
+  init_submodules   # needed before nvim is usable
+
+  # 1) Determine the selection
+  if [ ${#positional[@]} -gt 0 ]; then
+    normalize_apps "${positional[@]}"
+    [ ${#SELECTED_APPS[@]} -eq 0 ] && error "None of the provided apps are valid. See --list."
+  elif [ "$all_mode" -eq 1 ]; then
+    SELECTED_APPS=("${ALL_APPS[@]}")
+  elif [ "$edit" -eq 0 ] && load_profile; then
+    info "Using saved profile ($(hostname)): ${SELECTED_APPS[*]}"
+    echo "Re-run with --edit to change, or `--all` for everything."
+  else
+    select_apps_interactive
+    save_profile
+  fi
+
+  [ ${#SELECTED_APPS[@]} -eq 0 ] && warning "No apps selected — nothing to do."
+  echo
+  echo "Selected apps: ${SELECTED_APPS[*]:-<none>}"
+
+  # 2) Optional dependency install
+  install_deps
+
+  # 3) Symlink everything
+  link_all
+
+  # 4) Per-app setup hooks
+  local a
+  for a in "${SELECTED_APPS[@]}"; do setup_app "$a"; done
+
+  echo
+  info "Done! Symlinked: ${SELECTED_APPS[*]:-<none>}"
+  info "Restart your shell (exec zsh) or log out/in to pick up changes."
 }
 
 main "$@"

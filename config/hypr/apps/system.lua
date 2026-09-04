@@ -12,7 +12,7 @@ hl.window_rule({
 hl.window_rule({
     name  = "size-floating-window",
     match = { tag = "floating-window" },
-    size = "875 600",
+    size = "875 660",
 })
 
 -- Tag windows as floating

@@ -1,0 +1,3 @@
+# Per-machine app profiles (hostname). Edit to taste.
+profiles/*
+!profiles/README.md

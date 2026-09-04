@@ -1,6 +1,9 @@
 -- Application bindings
 -- (description is kept as comment only; Lua binds don't have label fields)
-hl.bind("SUPER + ALT + RETURN", hl.dsp.exec_cmd([[uwsm-app -- xdg-terminal-exec --dir="$(nafi-terminal-cwd)" tmux new]]))
+hl.bind(
+	"SUPER + ALT + RETURN",
+	hl.dsp.exec_cmd([[uwsm-app -- xdg-terminal-exec --dir="$(nafi-terminal-cwd)" tmux new]])
+)
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd([[uwsm-app -- xdg-terminal-exec --dir="$(nafi-terminal-cwd)"]]))
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("rofi -show drun"))
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("nafi-launch-browser"))
@@ -13,10 +16,12 @@ hl.bind("SUPER + SHIFT + ALT + B", hl.dsp.exec_cmd("nafi-launch-browser --privat
 hl.bind("SUPER + SHIFT + M", hl.dsp.exec_cmd("nafi-launch-or-focus spotify"))
 hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("nafi-launch-or-focus steam"))
 hl.bind("SUPER + SHIFT + N", hl.dsp.exec_cmd("nafi-launch-editor"))
-hl.bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("nafi-launch-tui lazydocker"))
+hl.bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("nafi-launch-or-focus podman-desktop"))
 hl.bind("SUPER + SHIFT + G", hl.dsp.exec_cmd([[nafi-launch-or-focus ^signal$ "uwsm-app -- signal-desktop"]]))
-hl.bind("SUPER + SHIFT + O",
-    hl.dsp.exec_cmd([[nafi-launch-or-focus ^obsidian$ "uwsm-app -- obsidian -disable-gpu --enable-wayland-ime"]]))
+hl.bind(
+	"SUPER + SHIFT + O",
+	hl.dsp.exec_cmd([[nafi-launch-or-focus ^obsidian$ "uwsm-app -- obsidian -disable-gpu --enable-wayland-ime"]])
+)
 hl.bind("SUPER + SHIFT + W", hl.dsp.exec_cmd("nafi-menu-wallpaper"))
 hl.bind("SUPER + SHIFT + SLASH", hl.dsp.exec_cmd("uwsm-app -- 1password"))
 
