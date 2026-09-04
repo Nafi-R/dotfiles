@@ -23,6 +23,11 @@
 #   ./install.sh --list           list available apps and exit
 #   ./install.sh --edit           force the interactive editor
 #   ./install.sh --no-deps        never install packages
+#
+# Interactive checklist: when `gum` is installed (it's already a dependency of
+# the `hypr` app) you get a real checkbox menu -- arrow keys to move, SPACE to
+# tick/untick apps, type to filter, ENTER to continue. A plain numbered toggle
+# menu is used automatically as a fallback when gum isn't available.
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -236,12 +241,46 @@ toggle() {
   _arr+=("$val")
 }
 
-select_apps_interactive() {
+# True if the interactive gum UI is usable (installed + running on a TTY).
+use_gum() {
+  command -v gum >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]
+}
+
+# gum is *never* required: the installer has a dependency-free numbered fallback
+# (pure bash + coreutils). On a brand-new machine where gum hasn't been installed
+# yet, optionally offer to install the single `gum` binary via the detected
+# package manager -- declining or a failed install just falls back to the plain
+# menu, so the script always works with nothing extra preinstalled.
+bootstrap_gum() {
+  use_gum && return 0
+  # Only offer interactively and when we can map to a package manager.
+  { [ -t 0 ] && [ -t 1 ]; } || return 0
+  case "$DISTRO" in arch|debian|fedora) ;; *) return 0 ;; esac
+  local ans
+  echo
+  read -rp "gum is not installed (it gives a nicer arrow-key/SPACE checkbox menu, but is optional). Install it now? [y/N] " ans
+  case "$ans" in
+    y|Y|yes)
+      warning "Installing gum via $DISTRO packages (may need sudo)..."
+      case "$DISTRO" in
+        debian) sudo apt-get install -y gum 2>/dev/null || sudo apt install -y gum ;;
+        arch)   sudo pacman -S --noconfirm --needed gum ;;
+        fedora) sudo dnf install -y gum ;;
+      esac || { warning "Couldn't install gum. Continuing with the plain menu (no dependencies)."; return 0; }
+      use_gum && info "gum installed. Enjoy the checkbox menu."
+      ;;
+  esac
+  return 0
+}
+
+# Plain numbered toggle menu (used when gum isn't available).
+select_apps_legacy() {
   local -a chosen=("${SELECTED_APPS[@]}")
   local names=("${ALL_APPS[@]}")
   local choice tok idx i
   echo
-  echo "Which apps should THIS machine get? (toggle by number)"
+  echo "Which apps should THIS machine get? (toggle by number, ranges like 1-3)"
+  echo "  (plain menu -- works with NO extra installs; install gum for arrow-key checkboxes)"
   echo "  [a] all   [n] none     <enter> to finish"
   while true; do
     echo "----------------------------------------"
@@ -270,6 +309,77 @@ select_apps_interactive() {
     esac
   done
   SELECTED_APPS=("${chosen[@]}")
+}
+
+# Interactive checkbox picker. Uses gum when available (arrow keys + SPACE to
+# tick/untick, type to filter, ENTER to confirm); falls back to the numbered
+# menu otherwise. Pre-selects the apps already in SELECTED_APPS (a saved profile).
+# Returns 0 on a confirmed selection (possibly empty), 1 if the user cancels.
+select_apps_interactive() {
+  local a
+  bootstrap_gum          # optional: install gum on a fresh box if user says yes
+  if use_gum; then
+    # Show a quick legend with descriptions, then gum over plain app names.
+    echo
+    info "Available apps:"
+    for a in "${ALL_APPS[@]}"; do
+      printf '  \033[2m%-10s\033[0m %s\n' "$a" "${APP_DESC[$a]}"
+    done
+    echo
+    info "Name the apps for this machine with the checkbox menu."
+    local sel=""
+    local -a gum_args=(
+      --no-limit --ordered
+      --header "Which apps should $(hostname) get?  (space = tick/untick, / = filter)"
+      --cursor "> " --cursor-prefix "  "
+      --selected-prefix "✔ " --unselected-prefix "  "
+      --height "${#ALL_APPS[@]}"
+    )
+    if [ ${#SELECTED_APPS[@]} -gt 0 ]; then
+      gum_args+=(--selected "$(IFS=,; echo "${SELECTED_APPS[*]}")")
+    fi
+    if ! sel="$(printf '%s\n' "${ALL_APPS[@]}" | gum choose "${gum_args[@]}")"; then
+      echo
+      info "Selection cancelled."
+      return 1
+    fi
+    local line
+    SELECTED_APPS=()
+    while IFS= read -r line; do
+      [ -n "$line" ] && SELECTED_APPS+=("$line")
+    done <<< "$sel"
+    return 0
+  fi
+  select_apps_legacy
+}
+
+# Show the final ticked list and ask for confirmation before anything is linked.
+# Returns 0 to proceed, 1 to re-open the menu.
+confirm_selection() {
+  local a
+  if [ ${#SELECTED_APPS[@]} -eq 0 ]; then
+    warning "No apps selected yet."
+    return 1
+  fi
+  echo
+  info "Apps that will be symlinked on $(hostname):"
+  for a in "${ALL_APPS[@]}"; do
+    if [[ " ${SELECTED_APPS[*]} " == *" $a "* ]]; then
+      printf '  \033[1;32m✔\033[0m %-10s %s\n' "$a" "${APP_DESC[$a]}"
+    fi
+  done
+  echo
+  if use_gum; then
+    gum confirm "Link these apps now?" \
+      --affirmative "Yes, link them" --negative "No, edit selection" --default=true
+    return $?
+  fi
+  local ans
+  read -rp "Link these apps now? [Y/n] " ans
+  case "$ans" in
+    n|N|no) return 1 ;;
+    *)       return 0 ;;
+  esac
 }
 
 # ---------------------------------------------------------------------------
@@ -405,7 +515,12 @@ main() {
     info "Using saved profile ($(hostname)): ${SELECTED_APPS[*]}"
     echo "Re-run with --edit to change, or `--all` for everything."
   else
-    select_apps_interactive
+    # Interactive path: keep re-opening the checklist until the selection is
+    # confirmed (or the user cancels with Ctrl-C).
+    while true; do
+      select_apps_interactive || { echo; info "Aborted by user."; exit 1; }
+      confirm_selection && break
+    done
     save_profile
   fi
 

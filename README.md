@@ -36,7 +36,7 @@ The old layout wrapped every app in duplicate hidden folders
 ## Usage
 
 ```sh
-./install.sh                # interactive checklist, links the apps you pick
+./install.sh                # interactive checkbox menu, links the apps you pick
 ./install.sh --all          # every app (system apps still need sudo)
 ./install.sh hypr waybar    # just those apps, non-interactive
 ./install.sh --deps hypr    # also install the distro packages hypr needs
@@ -44,6 +44,20 @@ The old layout wrapped every app in duplicate hidden folders
 ./install.sh --edit         # re-open the checklist next time
 ./install.sh -h             # help
 ```
+
+With no arguments the installer opens an interactive checkbox picker (via `gum`,
+which the `hypr` app already depends on): use the **arrow keys** to move, **SPACE**
+to tick/untick the apps you want symlinked, type to filter, and **ENTER** to
+continue. It then shows you the final ticked list and asks for confirmation
+before linking anything.
+
+**gum is optional, not required.** The core installer is pure bash + coreutils and
+runs with nothing else preinstalled — on a machine without `gum` it falls back to
+a plain numbered menu automatically (and on a fresh box it offers to install `gum`
+for you, though you can decline and it still works). The only other tools are used
+*inside specific apps*: `git` for submodules/TPM (with graceful warnings), `curl`
+in `scripts/zsh.sh`, and `sudo` only for distro packages (`--deps`) or system-wide
+apps like `sddm`.
 
 ### What each app maps to
 
