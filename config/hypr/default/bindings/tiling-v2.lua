@@ -61,10 +61,10 @@ hl.bind("SUPER + SHIFT + ALT + LEFT", hl.dsp.workspace.move({ monitor = "+1" }))
 hl.bind("SUPER + SHIFT + ALT + RIGHT", hl.dsp.workspace.move({ monitor = "-1" }))
 
 -- Swap active window
-hl.bind("SUPER + SHIFT + LEFT", function() hl.dispatch("swapwindow", "l") end)
-hl.bind("SUPER + SHIFT + RIGHT", function() hl.dispatch("swapwindow", "r") end)
-hl.bind("SUPER + SHIFT + UP", function() hl.dispatch("swapwindow", "u") end)
-hl.bind("SUPER + SHIFT + DOWN", function() hl.dispatch("swapwindow", "d") end)
+hl.bind("SUPER + SHIFT + LEFT", hl.dsp.window.swap({ direction = "left" }))
+hl.bind("SUPER + SHIFT + RIGHT", hl.dsp.window.swap({ direction = "right" }))
+hl.bind("SUPER + SHIFT + UP", hl.dsp.window.swap({ direction = "up" }))
+hl.bind("SUPER + SHIFT + DOWN", hl.dsp.window.swap({ direction = "down" }))
 
 -- Cycle through applications
 hl.bind("ALT + TAB", function()
