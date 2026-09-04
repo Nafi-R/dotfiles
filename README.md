@@ -8,7 +8,7 @@ dotfiles/
 ├── install.sh          # the only command you need
 ├── config/             #  -> ~/.config            (one folder per app)
 │   ├── hypr/  waybar/  ghostty/  nvim/            (nvim is a git submodule)
-│   ├── rofi/  swaync/  discord/  nafi/
+│   ├── rofi/  swaync/  discord/  noctalia/  nafi/
 ├── home/               #  -> ~                     (per-app dotfiles)
 │   ├── git/.gitconfig
 │   ├── tmux/.tmux.conf
@@ -73,6 +73,7 @@ apps like `sddm`.
 | `rofi`   | `~/.config/rofi`                                             |
 | `swaync` | `~/.config/swaync`                                           |
 | `discord`| `~/.config/discord`                                          |
+| `noctalia`| `~/.config/noctalia`                                        |
 | `nafi`   | `~/.local/share/nafi` (helper scripts)                       |
 | `sddm`   | `/usr/share/sddm/themes/nafi` (system-wide, needs sudo)      |
 

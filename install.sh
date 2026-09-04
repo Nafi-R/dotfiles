@@ -68,11 +68,12 @@ register_app ghostty  "Ghostty terminal"                   "config/ghostty|.conf
 register_app rofi     "Rofi launcher"                      "config/rofi|.config/rofi"                            "rofi"
 register_app swaync   "Sway notification center"           "config/swaync|.config/swaync"                        "swaync"
 register_app discord  "Discord settings"                   "config/discord|.config/discord"                      "discord"
+register_app noctalia "Noctalia shell/desktop config"      "config/noctalia|.config/noctalia"                  ""
 register_app nafi     "Nafi CLI helper scripts"            "local/share/nafi|.local/share/nafi"                  "playerctl pamixer brightnessctl upower libnotify grim slurp wl-clipboard"
 register_app sddm     "SDDM login theme (system-wide)"     "system/sddm/usr/share/sddm/themes/nafi|/usr/share/sddm/themes/nafi" "sddm"
 
 # Stable, human-friendly ordering for prompts
-ALL_APPS=(git tmux zsh nvim hypr waybar ghostty rofi swaync discord nafi sddm)
+ALL_APPS=(git tmux zsh nvim hypr waybar ghostty rofi swaync discord noctalia nafi sddm)
 
 # ---------------------------------------------------------------------------
 # Distro detection + package resolution
