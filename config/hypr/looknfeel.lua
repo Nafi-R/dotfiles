@@ -73,6 +73,22 @@ hl.window_rule({
     stay_focused = true
 })
 
+-- Auto-focus the share picker when it opens (no windowrule field exists for this)
+hl.on("window.open", function(win)
+    if win.class == "hyprland-share-picker" then
+        hl.dispatch(hl.dsp.focus({ window = win }))
+    end
+end)
+
+-- ESC closes the share picker when it is focused (non-consuming so ESC
+-- still reaches other windows, e.g. terminals)
+hl.bind("Escape", function()
+    local w = hl.get_active_window()
+    if w and w.class == "hyprland-share-picker" then
+        hl.dispatch(hl.dsp.window.close({ window = w }))
+    end
+end, { non_consuming = true })
+
 -- https://wiki.hyprland.org/Configuring/Basics/Variables/#layout
 hl.config({
     layout = {
