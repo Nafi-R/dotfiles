@@ -38,3 +38,6 @@ ollama() {
 export PATH="$HOME/.npm-global/bin:$PATH"
 
 . "$HOME/.local/share/../bin/env"
+
+# Pi
+export PATH="/home/nafi/.pi/agent/bin:$PATH"
