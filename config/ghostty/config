@@ -13,7 +13,7 @@ window-padding-y = 14
 confirm-close-surface=false
 resize-overlay = never
 gtk-toolbar-style = flat
-background-opacity = 0.10
+background-opacity = .5
 background-blur = true
 background-blur-radius = 16
 
