@@ -5,7 +5,7 @@ hl.bind(
 	hl.dsp.exec_cmd([[uwsm-app -- xdg-terminal-exec --dir="$(nafi-terminal-cwd)" tmux new]])
 )
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd([[uwsm-app -- xdg-terminal-exec --dir="$(nafi-terminal-cwd)"]]))
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("rofi -show drun"))
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("noctalia msg panel-open launcher"))
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("nafi-launch-browser"))
 hl.bind("SUPER + SHIFT + V", hl.dsp.exec_cmd("nafi-vpn"))
 hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd("uwsm-app -- nautilus --new-window"))
@@ -61,7 +61,13 @@ hl.bind("SUPER + SHIFT + ALT + KP_Up", hl.dsp.window.move({ workspace = 8, silen
 hl.bind("SUPER + SHIFT + ALT + KP_Page_Up", hl.dsp.window.move({ workspace = 9, silent = true }))
 hl.bind("SUPER + SHIFT + ALT + KP_Insert", hl.dsp.window.move({ workspace = 10, silent = true }))
 
--- Pass-through keys for Discord push-to-talk
-hl.bind("KP_Divide", hl.dsp.pass({ window = "class:^(discord)$" }))
-hl.bind("KP_Multiply", hl.dsp.pass({ window = "class:^(discord)$" }))
-hl.bind("F8", hl.dsp.pass({ window = "class:^(discord)$" }))
+-- Discord global keybinds (XDG GlobalShortcuts portal).
+-- Discord (1.0.16x) registers its custom keybinds through
+-- xdg-desktop-portal-hyprland, which stores them in Hyprland but never assigns
+-- a trigger (it always returns an empty trigger_description), so Discord's UI
+-- keeps saying "Your desktop hasn't allowed this shortcut yet" and its own key
+-- field does nothing. The trigger has to be bound here:
+-- action id = "<appid>:<shortcut-id>", see `hyprctl globalshortcuts`.
+hl.bind("KP_Divide", hl.dsp.global("discord:discord-toggle-deafen"))
+hl.bind("KP_Multiply", hl.dsp.global("discord:discord-toggle-mute"))
+hl.bind("F8", hl.dsp.global("discord:discord-toggle-go-live-streaming"))
