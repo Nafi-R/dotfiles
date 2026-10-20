@@ -19,7 +19,7 @@ thickness = 35
     border = ""
     fill = "on_secondary"
     id = "g1"
-    members = [ "temp", "sysmon_2", "sysmon_3" ]
+    members = [ "sysmon_1", "temp", "sysmon_2", "sysmon_4", "sysmon_3" ]
     opacity = 1.0
     padding = 6.0
 
@@ -96,7 +96,7 @@ color = "secondary"
 
 [widget.media]
 hide_when_no_media = true
-title_scroll = "on_hover"
+title_scroll = "none"
 
 [widget.network]
 color = "secondary"
@@ -111,17 +111,34 @@ color = "error"
 type = "spacer"
 
 [widget.temp]
-show_value = false
+show_value = true
+
+[widget.sysmon_1]
+glyph = "cpu-2"
+show_value = true
+stat = "cpu_usage"
+type = "sysmon"
+visualization = "none"
 
 [widget.sysmon_2]
+glyph = "database"
+stat = "ram_used"
+type = "sysmon"
+visualization = "none"
+
+[widget.sysmon_4]
 glyph = "gpu-usage"
-show_value = false
-stat = "gpu_temp"
+show_value = true
+stat = "gpu_usage"
+visualization = "none"
 type = "sysmon"
 
 [widget.sysmon_3]
-glyph = "cpu-2"
-stat = "ram_used"
+glyph = "memory"
+show_value = true
+show_glyph = false
+visualization = "none"
+stat = "gpu_vram_used"
 type = "sysmon"
 
 [widget.tray]
