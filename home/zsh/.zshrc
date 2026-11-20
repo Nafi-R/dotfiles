@@ -15,10 +15,13 @@ ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}✗%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[blue]%})"
 
 source "${HOME}/.config/nafi/utils"
-export PATH="/opt/nvim-linux-x86_64/bin:$PATH"
+# portable nvim (only if present)
+[ -d /opt/nvim-linux-x86_64/bin ] && export PATH="/opt/nvim-linux-x86_64/bin:$PATH"
 export PATH="${HOME}/.local/share/nafi/bin:$PATH"
-export PATH="${HOME}/.cargo/env:$PATH"
-export PATH="${HOME}/.cache/.bun/bin:$PATH"
+# cargo: source the env file (it is a script, not a bin dir)
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+# bun (default install location)
+[ -d "$HOME/.bun/bin" ] && export PATH="$HOME/.bun/bin:$PATH"
 export PATH="${HOME}/Applications/:$PATH"
 export EDITOR="nvim"
 
@@ -27,7 +30,7 @@ bindkey -s '^s' 'sessionizer\n'
 
 
 # opencode
-export PATH=/home/nafi/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
 
 ollama() {
@@ -37,10 +40,11 @@ ollama() {
 # Prime Agent (npm global binaries)
 export PATH="$HOME/.npm-global/bin:$PATH"
 
-. "$HOME/.local/share/../bin/env"
+# uv env (managed by `uv` in ~/.local/bin)
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
 # Pi
-export PATH="/home/nafi/.pi/agent/bin:$PATH"
+export PATH="$HOME/.pi/agent/bin:$PATH"
 
 # Point pi-llama at local llama.cpp server (instead of default 9931)
 export LLAMA_BASE_URL="http://localhost:8080/v1"
