@@ -172,7 +172,8 @@ declare -A PKG_MAP=(
 )
 
 resolve_pkg() {
-  local key="$1" entry="${PKG_MAP[$key]:-}"
+  local key="$1"
+  local entry="${PKG_MAP[$key]:-}"
   if [ -n "$entry" ]; then
     case "$DISTRO" in
       debian) echo "$entry" | cut -d'|' -f1 ;;
@@ -541,13 +542,13 @@ setup_app() {
 # ---------------------------------------------------------------------------
 main() {
   DO_DEPS=0
-  local edit=0 all_mode=0 list_mode=0 positional=()
+  local deps_set=0 edit=0 all_mode=0 list_mode=0 positional=()
   for arg in "$@"; do
     case "$arg" in
       --all)      all_mode=1 ;;
       --list)     list_mode=1 ;;
-      --deps)     DO_DEPS=1 ;;
-      --no-deps)  DO_DEPS=0 ;;
+      --deps)     DO_DEPS=1; deps_set=1 ;;
+      --no-deps)  DO_DEPS=0; deps_set=1 ;;
       --edit)     edit=1 ;;
       -h|--help)  usage 0 ;;
       --*)        warning "Unknown option '$arg'"; usage 1 ;;
@@ -582,6 +583,14 @@ main() {
   [ ${#SELECTED_APPS[@]} -eq 0 ] && warning "No apps selected — nothing to do."
   echo
   echo "Selected apps: ${SELECTED_APPS[*]:-<none>}"
+
+  # If the user didn't decide explicitly (--deps / --no-deps), ask on a TTY
+  # so interactive runs install packages by default.
+  if [ "$deps_set" -eq 0 ] && [ ${#SELECTED_APPS[@]} -gt 0 ] && [ -t 0 ]; then
+    local ans
+    read -rp "Install distro packages for these apps? [Y/n] " ans
+    case "$ans" in n|N|no) DO_DEPS=0 ;; *) DO_DEPS=1 ;; esac
+  fi
 
   # 2) Optional dependency install
   install_deps
