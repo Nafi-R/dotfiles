@@ -71,9 +71,12 @@ register_app discord  "Discord settings"                   "config/discord|.conf
 register_app noctalia "Noctalia shell/desktop config"      "config/noctalia|.config/noctalia"                  ""
 register_app nafi     "Nafi CLI helper scripts"            "local/share/nafi|.local/share/nafi"                  "playerctl pamixer brightnessctl upower libnotify grim slurp wl-clipboard"
 register_app sddm     "SDDM login theme (system-wide)"     "system/sddm/usr/share/sddm/themes/nafi|/usr/share/sddm/themes/nafi" "sddm"
+register_app pi       "Pi coding agent (settings, agents, extensions)" \
+  "config/pi/settings.json|.pi/settings.json config/pi/agent/settings.json|.pi/agent/settings.json config/pi/agent/models.json|.pi/agent/models.json config/pi/agent/fleet.json|.pi/agent/fleet.json config/pi/agent/agents|.pi/agent/agents config/pi/agent/themes|.pi/agent/themes config/pi/agent/scripts|.pi/agent/scripts config/pi/agent/extensions|.pi/agent/extensions config/pi/agent/npm/package.json|.pi/agent/npm/package.json config/pi/agent/npm/package-lock.json|.pi/agent/npm/package-lock.json" \
+  "nodejs"
 
 # Stable, human-friendly ordering for prompts
-ALL_APPS=(git tmux zsh nvim hypr waybar ghostty rofi swaync discord noctalia nafi sddm)
+ALL_APPS=(git tmux zsh nvim hypr waybar ghostty rofi swaync discord noctalia nafi sddm pi)
 
 # ---------------------------------------------------------------------------
 # Distro detection + package resolution
@@ -475,10 +478,21 @@ setup_tmux() {
   fi
 }
 
+setup_pi() {
+  if command -v npm >/dev/null 2>&1 && [ ! -d "$HOME/.pi/agent/npm/node_modules" ]; then
+    info "Installing pi extension packages (npm install)..."
+    npm install --prefix "$HOME/.pi/agent/npm" --no-audit --no-fund \
+      || warning "npm install failed — pi extensions not installed."
+  else
+    info "pi extension packages already present (or npm missing)."
+  fi
+}
+
 setup_app() {
   case "$1" in
     zsh)  setup_zsh ;;
     tmux) setup_tmux ;;
+    pi)   setup_pi ;;
   esac
 }
 

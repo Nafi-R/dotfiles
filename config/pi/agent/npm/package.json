@@ -1,0 +1,14 @@
+{
+  "name": "pi-extensions",
+  "private": true,
+  "dependencies": {
+    "@heyhuynhgiabuu/pi-diff": "^0.9.3",
+    "@juicesharp/rpiv-ask-user-question": "^2.15.0",
+    "@nehlis/pi-effort": "^0.1.0",
+    "pi-dynamic-providers": "^0.0.5",
+    "pi-goal-x": "^0.34.1",
+    "pi-open-tui": "^0.4.6",
+    "pi-subagents": "^0.88.1",
+    "pi-web-access": "^0.48.0"
+  }
+}

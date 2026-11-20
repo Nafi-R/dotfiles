@@ -1,0 +1,27 @@
+{
+  "lastChangelogVersion": "1.5.2",
+  "theme": "cc-distinct",
+  "defaultProvider": "llama.cpp",
+  "defaultModel": "Swift-1.5-Qwen3.8-27B-Q4_K_M",
+  "defaultThinkingLevel": "medium",
+  "packages": [
+    "git:github.com/huggingface/pi-llama",
+    "npm:pi-web-access",
+    "npm:pi-subagents",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@nehlis/pi-effort",
+    "npm:pi-goal-x",
+    "npm:@heyhuynhgiabuu/pi-diff",
+    "npm:pi-open-tui"
+  ],
+  "subagents": {
+    "defaultModel": "llama-cpp/Swift-1.5-Qwen3.8-27B-Q4_K_M"
+  },
+  "tuiMode": "fullscreen",
+  "extensionChangelogVersions": {
+    "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.48.0",
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.88.1",
+    "{\"source\":\"npm:pi-open-tui\",\"scope\":\"user\"}": "0.4.6"
+  },
+  "hideThinkingBlock": true
+}

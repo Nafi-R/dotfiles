@@ -1,0 +1,5 @@
+{
+  "agentScope": "project",
+  "concurrency": 4,
+  "maxParallelTasks": 8
+}

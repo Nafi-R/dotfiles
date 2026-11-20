@@ -1,0 +1,18 @@
+{
+  "providers": {
+    "strata": {
+      "baseUrl": "http://localhost:8081/v1",
+      "api": "openai-completions",
+      "apiKey": "ollama",
+      "models": [
+        {
+          "id": "qwen-flash-next",
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true
+          }
+        }
+      ]
+    }
+  }
+}

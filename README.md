@@ -76,6 +76,7 @@ apps like `sddm`.
 | `noctalia`| `~/.config/noctalia`                                        |
 | `nafi`   | `~/.local/share/nafi` (helper scripts)                       |
 | `sddm`   | `/usr/share/sddm/themes/nafi` (system-wide, needs sudo)      |
+| `pi`     | `~/.pi/settings.json`, `~/.pi/agent/` (settings, agents, extensions, + npm install) |
 
 ## Per-machine selection
 
