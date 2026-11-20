@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtGraphicalEffects 1.0
+import QtQuick.Effects
 import SddmComponents 2.0
 
 Rectangle {
@@ -77,11 +77,14 @@ Rectangle {
     }
 
     // -- Blur effect over wallpaper --
-    FastBlur {
+    MultiEffect {
         id: blurEffect
         anchors.fill: wallpaper
         source: wallpaper
-        radius: 64
+        blurEnabled: true
+        blur: 1.0
+        blurMax: 64
+        autoPaddingEnabled: false
     }
 
     // -- Dark overlay for contrast --
