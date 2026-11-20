@@ -250,11 +250,40 @@ use_gum() {
   command -v gum >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]
 }
 
+# gum is not in apt on older releases (e.g. Ubuntu 24.04) -- it is a static
+# Go binary, so install the official GitHub release into ~/.local/bin instead.
+# (Release asset names embed the version, e.g. gum_2.0.2_Linux_x86_64.tar.gz,
+# so the download URL is resolved via the GitHub API.)
+install_gum_binary() {
+  local arch url tmp bin dest="$HOME/.local/bin"
+  case "$(uname -m)" in
+    x86_64|amd64)  arch=x86_64 ;;
+    aarch64|arm64) arch=arm64 ;;
+    *) warning "No gum binary for arch '$(uname -m)'"; return 1 ;;
+  esac
+  url="$(curl -fsSL "https://api.github.com/repos/charmbracelet/gum/releases/latest" \
+          | grep -o "https://[^\"]*gum_.*_Linux_${arch}.tar.gz" | head -n1)"
+  [ -n "$url" ] || { warning "Could not find a gum release for $arch"; return 1; }
+  tmp="$(mktemp -d)" || return 1
+  if curl -fsSL "$url" | tar -xz -C "$tmp"; then
+    bin="$(find "$tmp" -type f -name gum | head -n1)"
+    if [ -n "$bin" ]; then
+      mkdir -p "$dest" && mv "$bin" "$dest/gum"
+      export PATH="$dest:$PATH"
+      rm -rf "$tmp"
+      return 0
+    fi
+  fi
+  rm -rf "$tmp"
+  return 1
+}
+
 # gum is *never* required: the installer has a dependency-free numbered fallback
 # (pure bash + coreutils). On a brand-new machine where gum hasn't been installed
 # yet, optionally offer to install the single `gum` binary via the detected
-# package manager -- declining or a failed install just falls back to the plain
-# menu, so the script always works with nothing extra preinstalled.
+# package manager (or the official GitHub release as a fallback) -- declining
+# or a failed install just falls back to the plain menu, so the script always
+# works with nothing extra preinstalled.
 bootstrap_gum() {
   use_gum && return 0
   # Only offer interactively and when we can map to a package manager.
@@ -265,9 +294,11 @@ bootstrap_gum() {
   read -rp "gum is not installed (it gives a nicer arrow-key/SPACE checkbox menu, but is optional). Install it now? [y/N] " ans
   case "$ans" in
     y|Y|yes)
-      warning "Installing gum via $DISTRO packages (may need sudo)..."
+      warning "Installing gum (may need sudo)..."
       case "$DISTRO" in
-        debian) sudo apt-get install -y gum 2>/dev/null || sudo apt install -y gum ;;
+        debian) sudo apt-get install -y gum 2>/dev/null \
+                || sudo apt install -y gum 2>/dev/null \
+                || { info "gum not in apt -- downloading the official binary to ~/.local/bin..."; install_gum_binary; } ;;
         arch)   sudo pacman -S --noconfirm --needed gum ;;
         fedora) sudo dnf install -y gum ;;
       esac || { warning "Couldn't install gum. Continuing with the plain menu (no dependencies)."; return 0; }
@@ -441,7 +472,14 @@ install_deps() {
     for dep in ${APP_DEPS[$a]:-}; do
       pkg="$(resolve_pkg "$dep")"
       if [ "$pkg" = "__skip__" ]; then
-        info "  $dep: not in $DISTRO official repos — skip/install manually."
+        if [ "$dep" = "gum" ] && [ "$DISTRO" = "debian" ]; then
+          # Not in apt on older releases (e.g. Ubuntu 24.04): user-local
+          # static binary from the official GitHub release, no sudo needed.
+          info "  $dep: not in apt -- downloading the official binary to ~/.local/bin"
+          install_gum_binary || warning "  failed to install $dep (GitHub release)"
+        else
+          info "  $dep: not in $DISTRO official repos — skip/install manually."
+        fi
         continue
       fi
       info "  installing $dep ($pkg)"
