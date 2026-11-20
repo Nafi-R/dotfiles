@@ -41,3 +41,6 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 
 # Pi
 export PATH="/home/nafi/.pi/agent/bin:$PATH"
+
+# Point pi-llama at local llama.cpp server (instead of default 9931)
+export LLAMA_BASE_URL="http://localhost:8080/v1"
