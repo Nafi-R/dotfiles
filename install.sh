@@ -568,7 +568,7 @@ main() {
     SELECTED_APPS=("${ALL_APPS[@]}")
   elif [ "$edit" -eq 0 ] && load_profile; then
     info "Using saved profile ($(hostname)): ${SELECTED_APPS[*]}"
-    echo "Re-run with --edit to change, or `--all` for everything."
+    echo "Re-run with --edit to change, or --all for everything."
   else
     # Interactive path: keep re-opening the checklist until the selection is
     # confirmed (or the user cancels with Ctrl-C).
