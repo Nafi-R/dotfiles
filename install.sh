@@ -72,7 +72,7 @@ register_app noctalia "Noctalia shell/desktop config"      "config/noctalia|.con
 register_app nafi     "Nafi CLI helper scripts"            "local/share/nafi|.local/share/nafi"                  "playerctl pamixer brightnessctl upower libnotify grim slurp wl-clipboard"
 register_app sddm     "SDDM login theme (system-wide)"     "system/sddm/usr/share/sddm/themes/nafi|/usr/share/sddm/themes/nafi" "sddm"
 register_app pi       "Pi coding agent (settings, agents, extensions)" \
-  "config/pi/settings.json|.pi/settings.json config/pi/agent/settings.json|.pi/agent/settings.json config/pi/agent/models.json|.pi/agent/models.json config/pi/agent/fleet.json|.pi/agent/fleet.json config/pi/agent/agents|.pi/agent/agents config/pi/agent/themes|.pi/agent/themes config/pi/agent/scripts|.pi/agent/scripts config/pi/agent/extensions|.pi/agent/extensions config/pi/agent/npm/package.json|.pi/agent/npm/package.json config/pi/agent/npm/package-lock.json|.pi/agent/npm/package-lock.json" \
+  "config/pi/settings.json|.pi/settings.json config/pi/agent/settings.json|.pi/agent/settings.json config/pi/agent/models.json|.pi/agent/models.json config/pi/agent/fleet.json|.pi/agent/fleet.json config/pi/agent/agents|.pi/agent/agents config/pi/agent/extensions|.pi/agent/extensions config/pi/agent/npm/package.json|.pi/agent/npm/package.json config/pi/agent/npm/package-lock.json|.pi/agent/npm/package-lock.json" \
   "nodejs"
 
 # Stable, human-friendly ordering for prompts
