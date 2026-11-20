@@ -187,8 +187,8 @@ resolve_pkg() {
 install_pkg() {
   local pkg="$1"
   case "$DISTRO" in
-    debian) sudo apt install -y "$pkg" ;;
-    arch)   sudo pacman -S --noconfirm --needed "$pkg" ;;
+    debian) sudo apt update && sudo apt install -y "$pkg" ;;
+    arch)   sudo pacman -Sy --noconfirm --needed "$pkg" ;;
     fedora) sudo dnf install -y "$pkg" ;;
   esac
 }
@@ -200,7 +200,7 @@ PROFILE_DIR="$DOTFILES_DIR/profiles"
 PROFILE_FILE="$PROFILE_DIR/$(hostname)"
 SELECTED_APPS=()
 
-usage() { sed -n '4,18p' "$0"; exit "${1:-0}"; }
+usage() { awk '/^# Usage:/{f=1;next} /^set -euo/{f=0} f' "$0"; exit "${1:-0}"; }
 
 list_apps() {
   echo "Available apps:"
@@ -501,7 +501,9 @@ init_submodules() {
 setup_zsh() {
   if [ -x "$DOTFILES_DIR/scripts/zsh.sh" ]; then
     info "Running zsh setup (oh-my-zsh, plugins, default shell)..."
-    bash "$DOTFILES_DIR/scripts/zsh.sh"
+    # zsh.sh runs with set -e (e.g. chsh can fail); don't kill the whole
+    # install over it -- link the rest and let the user re-run manually.
+    bash "$DOTFILES_DIR/scripts/zsh.sh" || warning "zsh setup failed -- re-run scripts/zsh.sh manually."
   fi
 }
 

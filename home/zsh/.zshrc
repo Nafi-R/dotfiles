@@ -28,7 +28,7 @@ bindkey -s '^s' 'sessionizer\n'
 
 # opencode
 export PATH=/home/nafi/.opencode/bin:$PATH
-source ~/.secrets
+[ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
 
 ollama() {
  docker exec -it ollama ollama $@
