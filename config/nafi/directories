@@ -12,6 +12,8 @@ parent_roots=(
 child_roots=(
     "${HOME}/.config/tmux"
     "${HOME}/dotfiles"
+    "${HOME}/.pi"
+    "${HOME}/.hermes"
 )
 
 worktree_roots=(
