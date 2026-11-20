@@ -95,3 +95,13 @@ hl.config({
         -- single_window_aspect_ratio = "1 1",
     },
 })
+
+-- https://wiki.hypr.land/Configuring/Variables/#render
+-- Direct scanout lets a fullscreen game's buffer go straight to the display
+-- instead of being composited every frame. Default is 0 (off).
+-- Note: an active screen share blocks direct scanout regardless.
+hl.config({
+    render = {
+        direct_scanout = 1,
+    },
+})
