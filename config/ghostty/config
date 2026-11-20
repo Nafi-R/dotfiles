@@ -2,7 +2,7 @@
 config-file = "~/.config/ghostty/ghostty.conf"
 
 # Font
-font-family = "FiraCode Nerd Font"
+font-family = "JetBrainsMono Nerd Font"
 font-style = Regular
 font-size = 9
 
@@ -15,7 +15,7 @@ resize-overlay = never
 gtk-toolbar-style = flat
 background-opacity = .5
 background-blur = true
-background-blur-radius = 16
+background-blur-radius = 32
 
 # Cursor styling
 cursor-style = "block"
