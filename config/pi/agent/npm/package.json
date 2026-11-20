@@ -8,7 +8,7 @@
     "pi-dynamic-providers": "^0.0.5",
     "pi-goal-x": "^0.34.1",
     "pi-open-tui": "^0.4.6",
-    "pi-subagents": "^0.88.1",
+    "pi-subagents": "^0.89.1",
     "pi-web-access": "^0.48.0"
   }
 }

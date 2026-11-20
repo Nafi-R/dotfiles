@@ -20,7 +20,7 @@
   "tuiMode": "fullscreen",
   "extensionChangelogVersions": {
     "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.48.0",
-    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.88.1",
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.89.1",
     "{\"source\":\"npm:pi-open-tui\",\"scope\":\"user\"}": "0.4.6"
   },
   "hideThinkingBlock": true
