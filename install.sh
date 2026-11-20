@@ -584,12 +584,13 @@ main() {
   # 2) Optional dependency install
   install_deps
 
-  # 3) Symlink everything
-  link_all
-
-  # 4) Per-app setup hooks
+  # 3) Per-app setup hooks -- run BEFORE linking: the oh-my-zsh installer
+  # clobbers an existing ~/.zshrc, so the zshrc symlink must be created after.
   local a
   for a in "${SELECTED_APPS[@]}"; do setup_app "$a"; done
+
+  # 4) Symlink everything
+  link_all
 
   echo
   info "Done! Symlinked: ${SELECTED_APPS[*]:-<none>}"

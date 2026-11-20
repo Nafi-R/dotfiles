@@ -67,4 +67,4 @@ install_zsh
 install_oh_my_zsh
 set_zsh_default
 
-warning "Zsh installed. Move your config to the home directory with 'stow zsh'"
+info "Zsh installed and configured."
